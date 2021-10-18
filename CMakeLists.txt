@@ -1,20 +1,22 @@
 ﻿cmake_minimum_required (VERSION 3.8)
-project ("pong-clone" VERSION 0.1)
+project (PONG VERSION 0.1)
 
-add_executable (pong-clone "src/pong.cpp")
+set(SOURCES
+	 ${PROJECT_SOURCE_DIR}/src/pong.cpp
+	 ${PROJECT_SOURCE_DIR}/src/shaderHandler.cpp
+)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-add_definitions(-DGLEW_STATIC)
-
-find_package( OpenGL REQUIRED )
-
+find_package(OpenGL REQUIRED)
 file(COPY res DESTINATION ${CMAKE_BINARY_DIR})
+add_executable (${PROJECT_NAME} ${SOURCES})
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+add_definitions(-DGLEW_STATIC)
 
 target_include_directories(${PROJECT_NAME}
 	PUBLIC ${OPENGL_INCLUDE_DIRS}
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/glfw/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/glew/include
+	PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME}
