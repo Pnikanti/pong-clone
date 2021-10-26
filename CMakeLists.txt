@@ -2,8 +2,14 @@
 project (PONG VERSION 0.1)
 
 set(SOURCES
-	 ${PROJECT_SOURCE_DIR}/src/pong.cpp
-	 ${PROJECT_SOURCE_DIR}/src/shaderHandler.cpp
+	 ${PROJECT_SOURCE_DIR}/src/game.cpp
+	 ${PROJECT_SOURCE_DIR}/src/gameObject.cpp
+	 ${PROJECT_SOURCE_DIR}/src/context.cpp
+	 ${PROJECT_SOURCE_DIR}/src/shader.cpp
+	 ${PROJECT_SOURCE_DIR}/src/input.cpp
+	 ${PROJECT_SOURCE_DIR}/src/graphics.cpp
+	 ${PROJECT_SOURCE_DIR}/src/physics.cpp
+	 ${PROJECT_SOURCE_DIR}/src/primitives.cpp
 )
 
 find_package(OpenGL REQUIRED)
@@ -16,6 +22,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC ${OPENGL_INCLUDE_DIRS}
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/glfw/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/glew/include
+	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/glm/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
 

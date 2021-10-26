@@ -1,7 +1,11 @@
 ﻿#include <iostream>
+#include <vector>
 #include <glew.h>
 #include <glfw3.h>
-#include "shaderHandler.h"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#include "shader.h"
 
 class OpenGLContext {
 public:
@@ -63,11 +67,8 @@ void OpenGLContext::FrameBufferSizeCb(GLFWwindow* window, int width, int height)
 
 void OpenGLContext::KeyCb(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	switch (key)
-	{
-	case GLFW_KEY_ESCAPE:
-		glfwSetWindowShouldClose(window, true);
-		break;
+	switch (key) {
+
 	}
 }
 
@@ -87,6 +88,14 @@ void OpenGLContext::DrawTriangle()
 void OpenGLContext::DrawRectangle()
 {
 	glUseProgram(shader);
+
+	glm::mat4 transform = glm::mat4(1.0f);
+	transform = glm::scale(transform, glm::vec3(0.5, 0.5, 0.5));
+	transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+
+	unsigned int transformUniform = glGetUniformLocation(shader, "transform");
+	glUniformMatrix4fv(transformUniform, 1, GL_FALSE, glm::value_ptr(transform));
+
 	glBindVertexArray(vertexArrayObject);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -117,7 +126,7 @@ void OpenGLContext::InitRectangle()
 {
 	float vertices[] = {
 		 0.5f,  0.5f, 0.0f,  // top right
-		 0.5f, -0.5f, 0.0f,  // bototm right
+		 0.5f, -0.5f, 0.0f,  // bottom right
 		-0.5f, -0.5f, 0.0f,  // bottom left
 		-0.5f,  0.5f, 0.0f   // top left
 	};
