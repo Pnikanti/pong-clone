@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 class OpenGLContext;
+class GameObject;
+class OrthographicCamera;
 
 class Game {
 public:
@@ -14,8 +16,11 @@ private:
 	void Advance();
 	void ProcessInput();
 	GameObject* CreateTestGameObject();
+	OrthographicCamera* CreateCamera(float width, float height);
 private:
+	float MS_PER_UPDATE;
+	glm::mat4 viewProjectionMatrix;
 	OpenGLContext* context;
 	GameObject* test;
-	float MS_PER_UPDATE;
+	OrthographicCamera* camera;
 };

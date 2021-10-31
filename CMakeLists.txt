@@ -9,12 +9,12 @@ set(SOURCES
 	 ${PROJECT_SOURCE_DIR}/src/input.cpp
 	 ${PROJECT_SOURCE_DIR}/src/graphics.cpp
 	 ${PROJECT_SOURCE_DIR}/src/physics.cpp
-	 ${PROJECT_SOURCE_DIR}/src/primitives.cpp
+	 ${PROJECT_SOURCE_DIR}/src/camera.cpp
 )
 
 find_package(OpenGL REQUIRED)
 file(COPY res DESTINATION ${CMAKE_BINARY_DIR})
-add_executable (${PROJECT_NAME} ${SOURCES})
+add_executable (${PROJECT_NAME} ${SOURCES} )
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 add_definitions(-DGLEW_STATIC)
 

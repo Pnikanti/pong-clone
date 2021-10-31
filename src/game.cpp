@@ -1,3 +1,4 @@
+#include <glew.h>
 #include <glfw3.h>
 #include <iostream>
 #include "context.h"
@@ -6,16 +7,22 @@
 #include "graphics.h"
 #include "game.h"
 #include "physics.h"
+#include "camera.h"
 
 std::vector<GameObject*> Game::gameObjects(std::vector<GameObject*>(3));
 
-// 0.0111 = 90 / 1
-Game::Game() 
-	: context(nullptr), MS_PER_UPDATE(0.0111), test(nullptr)
+Game::Game() :
+	MS_PER_UPDATE(0.0111),
+	context(nullptr),
+	test(nullptr),
+	camera(nullptr)
 {
-	context = new OpenGLContext("Pong Clone");
+	context = new OpenGLContext("Pong Clone", 800, 600);
 	context->UseShader(std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
+	camera = CreateCamera(800, 600);
+	context->UpdateViewProjectionMatrix(camera);
 }
+
 Game::~Game() {}
 
 void Game::Start()
@@ -76,6 +83,23 @@ GameObject* Game::CreateTestGameObject()
 	);
 }
 
+OrthographicCamera* Game::CreateCamera(float width, float height)
+{
+	float aspectRatio = width / height;
+	float cameraDimensions = 8.0f;
+	float bottom = -cameraDimensions;
+	float top = cameraDimensions;
+	float left = bottom * aspectRatio;
+	float right = top * aspectRatio;
+
+	std::cout << "aspectRatio: " << aspectRatio << std::endl;
+	std::cout << "bottom: " << bottom << std::endl;
+	std::cout << "top: " << top << std::endl;
+	std::cout << "left: " << left << std::endl;
+	std::cout << "right: " << right << std::endl;
+
+	return new OrthographicCamera(left, right, bottom, top);
+}
 int main()
 {
 	Game x = Game();

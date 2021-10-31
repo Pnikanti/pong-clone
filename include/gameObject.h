@@ -8,12 +8,12 @@
 
 class GameObject {
 public:
+	float speed;
 	std::string name;
 	glm::vec2 position;
 	glm::vec2 direction;
-	float speed;
 public:
-	GameObject::GameObject(InputComponent* inputComponent, GraphicsComponent* graphicsComponent);
+	GameObject(InputComponent* inputComponent, GraphicsComponent* graphicsComponent);
 	void Advance();
 	void Draw();
 	void ProcessInput();
