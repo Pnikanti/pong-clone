@@ -11,6 +11,7 @@ public:
 	float speed;
 	std::string name;
 	glm::vec2 position;
+	glm::vec2 size;
 	glm::vec2 direction;
 public:
 	GameObject(InputComponent* inputComponent, GraphicsComponent* graphicsComponent);

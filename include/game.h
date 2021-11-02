@@ -16,11 +16,12 @@ private:
 	void Advance();
 	void ProcessInput();
 	GameObject* CreateTestGameObject();
+	GameObject* CreatePlayer();
 	OrthographicCamera* CreateCamera(float width, float height);
 private:
 	float MS_PER_UPDATE;
 	glm::mat4 viewProjectionMatrix;
 	OpenGLContext* context;
-	GameObject* test;
+	GameObject* player;
 	OrthographicCamera* camera;
 };

@@ -14,7 +14,7 @@ std::vector<GameObject*> Game::gameObjects(std::vector<GameObject*>(3));
 Game::Game() :
 	MS_PER_UPDATE(0.0111),
 	context(nullptr),
-	test(nullptr),
+	player(nullptr),
 	camera(nullptr)
 {
 	context = new OpenGLContext("Pong Clone", 800, 600);
@@ -27,7 +27,7 @@ Game::~Game() {}
 
 void Game::Start()
 {
-	test = CreateTestGameObject();
+	player = CreatePlayer();
 	GameLoop();
 }
 
@@ -80,6 +80,14 @@ GameObject* Game::CreateTestGameObject()
 	return new GameObject(
 		new PlayerInputComponent(),
 		new TriangleGraphicsComponent()
+	);
+}
+
+GameObject* Game::CreatePlayer()
+{
+	return new GameObject(
+		new PlayerInputComponent(),
+		new QuadGraphicsComponent()
 	);
 }
 
