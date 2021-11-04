@@ -9,15 +9,15 @@ GameObject::GameObject(InputComponent* inputComponent, GraphicsComponent* graphi
 	physics(nullptr),
 	position(glm::vec2(0.0f)),
 	direction(glm::vec2(0.0f)),
-	size(glm::vec2(0.5f, 2.0f)),
-	speed(5.0f / 100)
+	size(glm::vec2(3.0f, 3.0f)),
+	speed(10.0f / 100)
 {
 	Game::gameObjects.push_back(this);
 }
 
 void GameObject::Advance()
 {
-	std::cout << "direction: " << glm::to_string(direction) << std::endl;
+	std::cout << "position: " << glm::to_string(position) << std::endl;
 
 	position = position + (glm::vec2(speed) * direction);
 }

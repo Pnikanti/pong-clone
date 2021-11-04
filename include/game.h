@@ -22,6 +22,5 @@ private:
 	float MS_PER_UPDATE;
 	glm::mat4 viewProjectionMatrix;
 	OpenGLContext* context;
-	GameObject* player;
 	OrthographicCamera* camera;
 };

@@ -14,8 +14,8 @@
 
 unsigned int OpenGLContext::SCR_WIDTH = 800;
 unsigned int OpenGLContext::SCR_HEIGHT = 600;
-unsigned int OpenGLContext::shader = 0;
 GLFWwindow* OpenGLContext::window = nullptr;
+std::unordered_map<std::string, unsigned int> OpenGLContext::shaders = std::unordered_map<std::string, unsigned int>();
 
 OpenGLContext::OpenGLContext(const char* windowName, int width, int height)
 	: alive(1), viewProjectionMatrix(glm::mat4(1.0f))
@@ -53,7 +53,11 @@ OpenGLContext::OpenGLContext(const char* windowName, int width, int height)
 
 OpenGLContext::~OpenGLContext()
 {
-	glDeleteProgram(shader);
+	for (auto i : shaders)
+	{
+		glDeleteProgram(i.second);
+	}
+
 	glfwTerminate();
 }
 
@@ -62,22 +66,55 @@ void OpenGLContext::FrameBufferSizeCb(GLFWwindow* window, int width, int height)
 	SCR_WIDTH = width;
 	SCR_HEIGHT = height;
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+	glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
+
+	for (auto i : shaders)
+	{
+		glUseProgram(i.second);
+		unsigned int resolutionUniform = glGetUniformLocation(i.second, "resolution");
+		if (resolutionUniform)
+		{
+			std::cout << "Setting resolution: " << glm::to_string(resolution) << " uniform!" << std::endl;
+			glUniform2fv(resolutionUniform, 1, glm::value_ptr(resolution));
+		}
+	}
 }
 
-void OpenGLContext::UseShader(std::string& vertexShader, std::string& fragmentShader)
+void OpenGLContext::AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader)
 {
 	std::cout << "Using shaders: " << vertexShader << ", " << fragmentShader << std::endl;
 	ShaderHandler::ShaderProgramSource source = ShaderHandler::Parse(vertexShader, fragmentShader);
-	shader = ShaderHandler::Create(source.VertexSource, source.FragmentSource);
+	shaders[shaderName] = ShaderHandler::Create(source.VertexSource, source.FragmentSource);
+}
+
+void OpenGLContext::UpdateUniformResolution()
+{
+	glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
+
+	for (auto i : shaders)
+	{
+		glUseProgram(i.second);
+		unsigned int resolutionUniform = glGetUniformLocation(i.second, "resolution");
+		if (resolutionUniform)
+		{
+			std::cout << "Setting resolution: " << glm::to_string(resolution) << " uniform!" << std::endl;
+			glUniform2fv(resolutionUniform, 1, glm::value_ptr(resolution));
+		}
+	}
 }
 
 void OpenGLContext::UpdateViewProjectionMatrix(OrthographicCamera* camera)
 {
 	std::cout << "viewProjectionMatrix: " << glm::to_string(camera->viewProjectionMatrix) << std::endl;
 	viewProjectionMatrix = camera->viewProjectionMatrix;
-	glUseProgram(shader);
-	unsigned int viewProjectionUniform = glGetUniformLocation(shader, "viewProjection");
-	glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+
+	for (auto i : shaders)
+	{
+		glUseProgram(i.second);
+		unsigned int viewProjectionUniform = glGetUniformLocation(i.second, "viewProjection");
+		glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+	}
 }
 
 void OpenGLContext::UpdateAllRenderTargets()

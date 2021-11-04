@@ -14,20 +14,22 @@ std::vector<GameObject*> Game::gameObjects(std::vector<GameObject*>(3));
 Game::Game() :
 	MS_PER_UPDATE(0.0111),
 	context(nullptr),
-	player(nullptr),
 	camera(nullptr)
 {
 	context = new OpenGLContext("Pong Clone", 800, 600);
-	context->UseShader(std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
+	context->AddShader(std::string("PaddleShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
+	context->AddShader(std::string("BallShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/ballFragment.shader"));
 	camera = CreateCamera(800, 600);
 	context->UpdateViewProjectionMatrix(camera);
+	context->UpdateUniformResolution();
 }
 
 Game::~Game() {}
 
 void Game::Start()
 {
-	player = CreatePlayer();
+	CreatePlayer();
+	CreateTestGameObject();
 	GameLoop();
 }
 
@@ -77,18 +79,22 @@ void Game::ProcessInput()
 
 GameObject* Game::CreateTestGameObject()
 {
-	return new GameObject(
-		new PlayerInputComponent(),
-		new TriangleGraphicsComponent()
+	GameObject* t = new GameObject(
+		new InputComponent(),
+		new QuadGraphicsComponent()
 	);
+	t->size = glm::vec2(2.0, 2.0);
+	t->position = glm::vec2(-5.0, 0.0);
+	return t;
 }
 
 GameObject* Game::CreatePlayer()
 {
-	return new GameObject(
+	GameObject* t = new GameObject(
 		new PlayerInputComponent(),
-		new QuadGraphicsComponent()
+		new CircleGraphicsComponent()
 	);
+	return t;
 }
 
 OrthographicCamera* Game::CreateCamera(float width, float height)
