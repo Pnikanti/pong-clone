@@ -12,7 +12,8 @@
 std::vector<GameObject*> Game::gameObjects(std::vector<GameObject*>(3));
 
 Game::Game() :
-	MS_PER_UPDATE(0.0111),
+	MS_PER_UPDATE(0.02),
+	state(GameState::MainMenu),
 	context(nullptr),
 	camera(nullptr)
 {
@@ -22,15 +23,27 @@ Game::Game() :
 	camera = CreateCamera(800, 600);
 	context->UpdateViewProjectionMatrix(camera);
 	context->UpdateUniformResolution();
+	input = new MasterInputComponent();
+	GameLoop();
 }
 
 Game::~Game() {}
 
 void Game::Start()
 {
-	CreatePlayer();
-	CreateTestGameObject();
-	GameLoop();
+	CreatePaddle();
+	CreateBall();
+}
+
+void Game::End()
+{
+	for (auto i : gameObjects)
+	{
+		if (i != nullptr) {
+			delete i;
+		}
+	}
+	gameObjects.clear();
 }
 
 void Game::GameLoop()
@@ -50,7 +63,9 @@ void Game::GameLoop()
 		ProcessInput();
 		while (lag >= MS_PER_UPDATE)
 		{
-			Advance();
+			if (state == GameState::Play)
+				Advance();
+
 			lag -= MS_PER_UPDATE;
 		}
 		context->RenderOneFrame();
@@ -59,7 +74,7 @@ void Game::GameLoop()
 
 void Game::Advance()
 {
-	for (auto i : Game::gameObjects)
+	for (auto i : gameObjects)
 	{
 		if (i != nullptr) {
 			i->Advance();
@@ -69,7 +84,9 @@ void Game::Advance()
 
 void Game::ProcessInput()
 {
-	for (auto i : Game::gameObjects)
+	input->Update(*this);
+
+	for (auto i : gameObjects)
 	{
 		if (i != nullptr) {
 			i->ProcessInput();
@@ -77,24 +94,26 @@ void Game::ProcessInput()
 	}
 }
 
-GameObject* Game::CreateTestGameObject()
+void Game::CreateBall()
 {
 	GameObject* t = new GameObject(
 		new InputComponent(),
-		new QuadGraphicsComponent()
+		new CircleGraphicsComponent()
 	);
-	t->size = glm::vec2(2.0, 2.0);
-	t->position = glm::vec2(-5.0, 0.0);
-	return t;
+	t->size = glm::vec2(1.0, 1.0);
+	gameObjects.push_back(t);
 }
 
-GameObject* Game::CreatePlayer()
+void Game::CreatePaddle()
 {
 	GameObject* t = new GameObject(
 		new PlayerInputComponent(),
-		new CircleGraphicsComponent()
+		new QuadGraphicsComponent()
 	);
-	return t;
+	t->size = glm::vec2(0.5, 2.5);
+	t->position = glm::vec2(-8.0, 0.0);
+	t->speed = 0.3f;
+	gameObjects.push_back(t);
 }
 
 OrthographicCamera* Game::CreateCamera(float width, float height)
@@ -117,6 +136,5 @@ OrthographicCamera* Game::CreateCamera(float width, float height)
 int main()
 {
 	Game x = Game();
-	x.Start();
 	return 0;
 }

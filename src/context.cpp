@@ -49,6 +49,7 @@ OpenGLContext::OpenGLContext(const char* windowName, int width, int height)
 	}
 
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	glfwSwapInterval(1);
 }
 
 OpenGLContext::~OpenGLContext()

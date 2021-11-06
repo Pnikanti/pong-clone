@@ -1,7 +1,6 @@
 #include <iostream>
 #include <gtx/string_cast.hpp>
 #include "gameObject.h"
-#include "game.h"
 
 GameObject::GameObject(InputComponent* inputComponent, GraphicsComponent* graphicsComponent) :
 	input(inputComponent),
@@ -11,9 +10,7 @@ GameObject::GameObject(InputComponent* inputComponent, GraphicsComponent* graphi
 	direction(glm::vec2(0.0f)),
 	size(glm::vec2(3.0f, 3.0f)),
 	speed(10.0f / 100)
-{
-	Game::gameObjects.push_back(this);
-}
+{}
 
 void GameObject::Advance()
 {

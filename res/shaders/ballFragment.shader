@@ -13,7 +13,7 @@ float draw_circle(float radius, vec2 center, vec2 uv) {
 
 void main() {
     vec2 uv = (gl_FragCoord.xy + (vertexPosition.xy - 0.5) * resolution.xy) / resolution.xy;
-    float radius = 0.2;
+    float radius = 0.05;
     vec2 center = position.xy * 0.189;
     float circle = draw_circle(radius, center, uv);
     if (circle < 1.0)
