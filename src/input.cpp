@@ -1,62 +1,76 @@
-#include <iostream>
+#include <glfw/glfw3.h>
 #include "input.h"
-#include "gameObject.h"
 #include "context.h"
+#include "entity.h"
 #include "game.h"
+#include "log.h"
 
-void InputComponent::Update(GameObject& object) {}
-void InputComponent::Update(Game& game) {}
-void InputComponent::Update() {}
-
-void PlayerInputComponent::Update(GameObject& object)
+void InputComponent::Update(Entity& entity)
 {
-	if (glfwGetKey(OpenGLContext::window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		object.direction.y = 1;
-	}
-	else if (glfwGetKey(OpenGLContext::window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		object.direction.y = -1;
-	}
-	else {
-		object.direction.y = 0;
-	}
 
 }
 
-void MasterInputComponent::Update(Game& game)
+void InputComponent::Update(Game& application)
 {
-	switch (game.state)
+
+}
+
+void InputComponent::Update()
+{
+
+}
+
+void PlayerInputComponent::Update(Entity& entity)
+{
+	if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_W) == GLFW_PRESS)
+		LOGGER_INFO("Upwards!");
+	else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_S) == GLFW_PRESS)
+		LOGGER_INFO("Downwards!");
+	else
+		return;
+}
+
+void ComputerInputComponent::Update(Entity& entity)
+{
+
+}
+
+void GameInputComponent::Update(Game& game)
+{
+	switch (game.State)
 	{
-		case GameState::Play:
+	case GameState::Play:
+	{
+		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
-			if (glfwGetKey(OpenGLContext::window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			{
-				game.state = GameState::MainMenu;
-			}
-			break;
+			game.State = GameState::MainMenu;
+			LOGGER_INFO("Main menu");
 		}
-		case GameState::MainMenu:
+		break;
+	}
+	case GameState::MainMenu:
+	{
+		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
-			if (glfwGetKey(OpenGLContext::window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			{
-				glfwSetWindowShouldClose(OpenGLContext::window, true);
-			}
-			else if (glfwGetKey(OpenGLContext::window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			{
-				game.state = GameState::Play;
-				game.Start();
-			}
-			break;
+			glfwSetWindowShouldClose(OpenGL::Context::Window, true);
 		}
-		case GameState::GameOver:
+		else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			if (glfwGetKey(OpenGLContext::window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			{
-				game.state = GameState::MainMenu;
-				game.End();
-			}
-			break;
+			game.State = GameState::Play;
+			LOGGER_INFO("Play");
+			game.Start();
 		}
+		break;
+	}
+	case GameState::GameOver:
+	{
+		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		{
+			game.State = GameState::MainMenu;
+			LOGGER_INFO("Main menu");
+			game.End();
+		}
+		break;
+	}
 	}
 }

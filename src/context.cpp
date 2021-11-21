@@ -1,139 +1,179 @@
-﻿
-#include <iostream>
-#include <vector>
-#include <glew.h>
-#include <glfw3.h>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
-#include <gtx/string_cast.hpp>
+#include <glew/glew.h>
+#include <glfw/glfw3.h>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "context.h"
-#include "shader.h"
-#include "gameObject.h"
-#include "game.h"
+#include "gui.h"
 #include "camera.h"
+#include "game.h"
+#include "log.h"
+#include "shader.h"
+#include "entity.h"
+#include "entitymanager.h"
 
-unsigned int OpenGLContext::SCR_WIDTH = 800;
-unsigned int OpenGLContext::SCR_HEIGHT = 600;
-GLFWwindow* OpenGLContext::window = nullptr;
-std::unordered_map<std::string, unsigned int> OpenGLContext::shaders = std::unordered_map<std::string, unsigned int>();
-
-OpenGLContext::OpenGLContext(const char* windowName, int width, int height)
-	: alive(1), viewProjectionMatrix(glm::mat4(1.0f))
+void* operator new(size_t size)
 {
-	SCR_WIDTH = width;
-	SCR_HEIGHT = height;
+	OpenGL::Context::AllocatedMemory += size;
+	return malloc(size);
+}
 
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, windowName, NULL, NULL);
+void operator delete(void* memory, size_t size)
+{
+	OpenGL::Context::FreedMemory += size;
+	free(memory);
+}
 
-	if (!window)
+namespace OpenGL {
+	unsigned int Context::AllocatedMemory = 0;
+	unsigned int Context::FreedMemory = 0;
+	unsigned int Context::SCR_WIDTH = 800;
+	unsigned int Context::SCR_HEIGHT = 600;
+	glm::mat4 Context::viewProjectionMatrix = glm::mat4(0.0f);
+	OrthographicCamera* Context::Camera = nullptr;
+	GLFWwindow* Context::Window = nullptr;
+	Gui* Context::GuiContext = nullptr;
+	std::unordered_map<std::string, unsigned int> Context::Shaders = std::unordered_map<std::string, unsigned int>();
+
+	Context::Context(int width, int height, const char* windowName)
+		: Alive(1)
 	{
+		SCR_WIDTH = width;
+		SCR_HEIGHT = height;
+
+		glfwInit();
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		Window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, windowName, NULL, NULL);
+
+		if (!Window)
+		{
+			glfwTerminate();
+		}
+
+		glfwMakeContextCurrent(Window);
+		glfwSetFramebufferSizeCallback(Window, FrameBufferSizeCb);
+		GLenum glewInitialized = glewInit();
+
+		if (glewInitialized == GLEW_OK)
+		{
+			LOGGER_INFO("Glew version: {0}", glewGetString(GLEW_VERSION));
+		}
+		else
+		{
+			LOGGER_ERROR("Glew error: {0}", glewGetErrorString(glewInitialized));
+		}
+
+		glfwSwapInterval(1); // Enable vsync
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+		GuiContext = new Gui();
+		LOGGER_INFO("Context initialized!");
+	}
+
+	Context::~Context()
+	{
+		ImGui::DestroyContext();
 		glfwTerminate();
 	}
 
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, FrameBufferSizeCb);
-
-	GLenum glewInitialized = glewInit();
-
-	if (glewInitialized == GLEW_OK)
+	void Context::FrameBufferSizeCb(GLFWwindow* window, int width, int height)
 	{
-		std::cout << "Glew Version: " << glewGetString(GLEW_VERSION) << std::endl;
-	}
-	else 
-	{
-		std::cout << "Glew Error: " << glewGetErrorString(glewInitialized) << std::endl;
-	}
+		SCR_WIDTH = width;
+		SCR_HEIGHT = height;
 
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-	glfwSwapInterval(1);
-}
-
-OpenGLContext::~OpenGLContext()
-{
-	for (auto i : shaders)
-	{
-		glDeleteProgram(i.second);
-	}
-
-	glfwTerminate();
-}
-
-void OpenGLContext::FrameBufferSizeCb(GLFWwindow* window, int width, int height)
-{
-	SCR_WIDTH = width;
-	SCR_HEIGHT = height;
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
-	glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
-
-	for (auto i : shaders)
-	{
-		glUseProgram(i.second);
-		unsigned int resolutionUniform = glGetUniformLocation(i.second, "resolution");
-		if (resolutionUniform)
+		if (Camera != nullptr)
 		{
-			std::cout << "Setting resolution: " << glm::to_string(resolution) << " uniform!" << std::endl;
-			glUniform2fv(resolutionUniform, 1, glm::value_ptr(resolution));
+			delete Camera;
+			Camera = nullptr;
 		}
+
+		Camera = CreateCamera((float)SCR_WIDTH, (float)SCR_HEIGHT);
+		UpdateViewProjectionMatrix(Camera);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 	}
-}
 
-void OpenGLContext::AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader)
-{
-	std::cout << "Using shaders: " << vertexShader << ", " << fragmentShader << std::endl;
-	ShaderHandler::ShaderProgramSource source = ShaderHandler::Parse(vertexShader, fragmentShader);
-	shaders[shaderName] = ShaderHandler::Create(source.VertexSource, source.FragmentSource);
-}
-
-void OpenGLContext::UpdateUniformResolution()
-{
-	glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
-
-	for (auto i : shaders)
+	void Context::RenderGui()
 	{
-		glUseProgram(i.second);
-		unsigned int resolutionUniform = glGetUniformLocation(i.second, "resolution");
-		if (resolutionUniform)
+		GuiContext->Begin();
+		for (auto i : Game::GuiContexts)
 		{
-			std::cout << "Setting resolution: " << glm::to_string(resolution) << " uniform!" << std::endl;
-			glUniform2fv(resolutionUniform, 1, glm::value_ptr(resolution));
+			if (i != nullptr)
+			{
+				i->Update();
+			}
+		}
+		GuiContext->End();
+	}
+
+	void Context::AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader)
+	{
+		LOGGER_INFO("Using shaders: {0}, {1}", vertexShader, fragmentShader);
+		ShaderHandler::ShaderProgramSource source = ShaderHandler::Parse(vertexShader, fragmentShader);
+		Shaders[shaderName] = ShaderHandler::Create(source.VertexSource, source.FragmentSource);
+	}
+
+	void Context::Start()
+	{
+		if (Camera != nullptr)
+		{
+			delete Camera;
+			Camera = nullptr;
+		}
+
+		Camera = CreateCamera((float)SCR_WIDTH, (float)SCR_HEIGHT);
+		UpdateViewProjectionMatrix(Camera);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	}
+
+	void Context::UpdateViewProjectionMatrix(OrthographicCamera* camera)
+	{
+		LOGGER_TRACE("Updating viewProjectionmatrix: {0}", glm::to_string(camera->viewProjectionMatrix));
+		viewProjectionMatrix = camera->viewProjectionMatrix;
+
+		for (auto i : Shaders)
+		{
+			glUseProgram(i.second);
+			unsigned int viewProjectionUniform = glGetUniformLocation(i.second, "viewProjection");
+			glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
 		}
 	}
-}
 
-void OpenGLContext::UpdateViewProjectionMatrix(OrthographicCamera* camera)
-{
-	std::cout << "viewProjectionMatrix: " << glm::to_string(camera->viewProjectionMatrix) << std::endl;
-	viewProjectionMatrix = camera->viewProjectionMatrix;
-
-	for (auto i : shaders)
+	void Context::UpdateAllRenderTargets()
 	{
-		glUseProgram(i.second);
-		unsigned int viewProjectionUniform = glGetUniformLocation(i.second, "viewProjection");
-		glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
-	}
-}
-
-void OpenGLContext::UpdateAllRenderTargets()
-{
-	for (auto i : Game::gameObjects)
-	{
-		if (i != nullptr) {
-			i->Draw();
+		for (auto i : EntityManager::GetEntities())
+		{
+			if (i != nullptr)
+				i->Draw();
 		}
 	}
-}
 
-void OpenGLContext::RenderOneFrame()
-{
-	alive = !glfwWindowShouldClose(window);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	UpdateAllRenderTargets();
-	glfwSwapBuffers(window);
-	glfwPollEvents();
+	OrthographicCamera* Context::CreateCamera(float width, float height)
+	{
+		float aspectRatio = width / height;
+		float cameraDimensions = 20.0f;
+		float bottom = -cameraDimensions;
+		float top = cameraDimensions;
+		float left = bottom * aspectRatio;
+		float right = top * aspectRatio;
+
+		LOGGER_TRACE("aspectRatio: {0}", aspectRatio);
+		LOGGER_TRACE("bottom: {0}", bottom);
+		LOGGER_TRACE("top: {0}", top);
+		LOGGER_TRACE("left: {0}", left);
+		LOGGER_TRACE("right: {0}", right);
+
+		return new OrthographicCamera(left, right, bottom, top);
+	}
+
+	void Context::RenderOneFrame()
+	{
+		Alive = !glfwWindowShouldClose(Window);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		UpdateAllRenderTargets();
+		RenderGui();
+		glfwSwapBuffers(Window);
+		glfwPollEvents();
+	}
 }

@@ -1,40 +1,44 @@
 #pragma once
 #include <vector>
-class OpenGLContext;
-class GameObject;
+
+namespace OpenGL { class GuiContext; class Context; }
+class Entity;
 class OrthographicCamera;
+class PhysicsWorld;
+class GameInputComponent;
 
 enum class GameState
 {
-	Play = 0, MainMenu = 1, GameOver = 2
+	Play = 0, MainMenu, Pause, GameOver
 };
 
 enum class Side
 {
-	Left = 0, Right = 1
+	Left = 0, Right
+};
+
+enum class Input
+{
+	Human = 0, Ai
 };
 
 class Game {
 public:
-	Game::Game();
-	Game::~Game();
+	Game(const char* appName, int width, int height);
+	~Game();
 	void Start();
 	void End();
-public:
-	static std::vector<GameObject*> gameObjects;
-	GameState state;
-private:
-	void GameLoop();
-	void Advance();
+	void Loop();
 	void ProcessInput();
-	void CreateBall();
-	void CreatePaddle();
-	OrthographicCamera* CreateCamera(float width, float height);
+	void UpdateAllEntities();
+	void CreateDebugGui();
+	void CreateGameGui();
+public:
+	static std::vector<OpenGL::GuiContext*> GuiContexts;
+	static float TimeStep;
+	GameState State;
 private:
-	float MS_PER_UPDATE;
-	glm::mat4 viewProjectionMatrix;
-	OpenGLContext* context;
-	OrthographicCamera* camera;
-	InputComponent* input;
+	OpenGL::Context* Context;
+	PhysicsWorld* Physics;
+	GameInputComponent* Input;
 };
-

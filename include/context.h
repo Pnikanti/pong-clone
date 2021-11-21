@@ -1,29 +1,37 @@
 #pragma once
-#include <glfw3.h>
-#include <glm.hpp>
-#include <string>
+#include <imgui.h>
 #include <unordered_map>
+#include <glm/glm.hpp>
 
-class GameObject;
+namespace OpenGL { class Gui; }
+struct GLFWwindow;
 class OrthographicCamera;
 
-class OpenGLContext {
-public:
-	int alive;
-	static unsigned int SCR_WIDTH;
-	static unsigned int SCR_HEIGHT;
-	static GLFWwindow* window;
-	static std::unordered_map<std::string, unsigned int> shaders;
-public:
-	OpenGLContext(const char* windowName, int width, int height);
-	~OpenGLContext();
-	void RenderOneFrame();
-	void AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader);
-	void UpdateViewProjectionMatrix(OrthographicCamera* camera);
-	void UpdateUniformResolution();
-private:
-	static void FrameBufferSizeCb(GLFWwindow* window, int width, int height);
-	void UpdateAllRenderTargets();
-private:
-	glm::mat4 viewProjectionMatrix;
-};
+namespace OpenGL {
+	class Context {
+	public:
+		Context(int width, int height, const char* windowName);
+		~Context();
+		void Start();
+		void RenderOneFrame();
+		void AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader);
+	public:
+		static GLFWwindow* Window;
+		bool Alive;
+		static unsigned int SCR_WIDTH;
+		static unsigned int SCR_HEIGHT;
+		static unsigned int AllocatedMemory;
+		static unsigned int FreedMemory;
+		static std::unordered_map<std::string, unsigned int> Shaders;
+	private:
+		static void FrameBufferSizeCb(GLFWwindow* window, int width, int height);
+		static OrthographicCamera* CreateCamera(float width, float height);
+		static void UpdateViewProjectionMatrix(OrthographicCamera* camera);
+		void RenderGui();
+		void UpdateAllRenderTargets();
+	private:
+		static OrthographicCamera* Camera;
+		static Gui* GuiContext;
+		static glm::mat4 viewProjectionMatrix;
+	};
+}

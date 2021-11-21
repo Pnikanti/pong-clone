@@ -1,8 +1,8 @@
-#include "shader.h"
-#include <iostream>
 #include <sstream>
 #include <fstream>
-#include <glew.h>
+#include <glew/glew.h>
+#include "log.h"
+#include "shader.h"
 
 ShaderHandler::ShaderProgramSource ShaderHandler::Parse(const std::string& vertexFile, const std::string& fragmentFile)
 {
@@ -40,8 +40,7 @@ unsigned int ShaderHandler::Compile(unsigned int type, const std::string& source
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 		char* message = (char*)alloca(length * sizeof(char));
 		glGetShaderInfoLog(shader, length, &length, message);
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-		std::cout << message << std::endl;
+		LOGGER_WARN("Failed to compile {0} shader: {1}", type == GL_VERTEX_SHADER ? "vertex" : "fragment", message);
 		glDeleteShader(shader);
 		return 0;
 	}
@@ -68,9 +67,7 @@ unsigned int ShaderHandler::Create(const std::string& vertexShader, const std::s
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 		char* message = (char*)alloca(length * sizeof(char));
 		glGetProgramInfoLog(program, length, &length, message);
-		std::cout << "Failed to link shader program!" << std::endl;
-		std::cout << message << std::endl;
-
+		LOGGER_WARN("Failed to link shader program: {0}", message);
 	}
 
 	glDeleteShader(vs);

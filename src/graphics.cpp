@@ -1,103 +1,59 @@
-#include <iostream>
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
-#include <glew.h>
-#include <glfw3.h>
+#include <glew/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "graphics.h"
 #include "context.h"
-#include "gameObject.h"
-#include "shader.h"
+#include "entity.h"
+#include "log.h"
 
-void GraphicsComponent::Draw(GameObject& object) {}
-
-TriangleGraphicsComponent::TriangleGraphicsComponent() 
-	: triangle(Primitives::Triangle())
+namespace OpenGL
 {
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle.vertices), triangle.vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-}
+	void GraphicsComponent::Draw(Entity& entity) {}
+	QuadComponent::QuadComponent()
+		: quad(Quad()), vertexArray(0), vertexBuffer(0), elementBuffer(0)
+	{
+		LOGGER_TRACE("QuadComponent constructor called");
+		glGenVertexArrays(1, &vertexArray);
+		glBindVertexArray(vertexArray);
 
-void TriangleGraphicsComponent::Draw(GameObject& object)
-{
-	unsigned int shader = OpenGLContext::shaders["PaddleShader"];
+		glGenBuffers(1, &vertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quad.vertices), quad.vertices, GL_STATIC_DRAW);
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(object.position, 0.0f))
-		* glm::scale(glm::mat4(1.0f), glm::vec3(object.size, 1.0f));
+		glGenBuffers(1, &elementBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad.indices), quad.indices, GL_STATIC_DRAW);
 
-	unsigned int modelUniform = glGetUniformLocation(shader, "model");
-	glUniformMatrix4fv(modelUniform, 1, GL_FALSE, glm::value_ptr(model));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		shader = Context::Shaders["BasicShader"];
+	}
+	QuadComponent::~QuadComponent()
+	{
+		LOGGER_TRACE("QuadComponent destructor called");
+		glBindVertexArray(0);
+		glDeleteBuffers(1, &vertexBuffer);
+		glDeleteBuffers(1, &elementBuffer);
+		glDeleteVertexArrays(1, &vertexArray);
+	}
 
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glBindVertexArray(0);
-}
+	void QuadComponent::Draw(Entity& entity)
+	{
+		glUseProgram(shader);
 
-QuadGraphicsComponent::QuadGraphicsComponent()
-	: quad(Primitives::Quad())
-{
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quad.vertices), quad.vertices, GL_STATIC_DRAW);
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad.indices), quad.indices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-}
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(entity.GetPosition(), 0.0f))
+			* glm::rotate(glm::mat4(1.0f), entity.GetRotationRadians(), {0.0f, 0.0f, 1.0f })
+			* glm::scale(glm::mat4(1.0f), glm::vec3(entity.GetSize(), 1.0f));
 
-void QuadGraphicsComponent::Draw(GameObject& object)
-{
-	unsigned int shader = OpenGLContext::shaders["PaddleShader"];
-	glUseProgram(shader);
+		unsigned int modelUniform = glGetUniformLocation(shader, "model");
+		glUniformMatrix4fv(modelUniform, 1, GL_FALSE, glm::value_ptr(model));
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(object.position, 0.0f))
-		* glm::scale(glm::mat4(1.0f), glm::vec3(object.size, 1.0f));
+		unsigned int colorUniform = glGetUniformLocation(shader, "color");
+		glUniform3fv(colorUniform, 1, glm::value_ptr(entity.Color));
 
-	unsigned int modelUniform = glGetUniformLocation(shader, "model");
-	glUniformMatrix4fv(modelUniform, 1, GL_FALSE, glm::value_ptr(model));
-
-	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-}
-
-CircleGraphicsComponent::CircleGraphicsComponent()
-	: quad(Primitives::Quad())
-{
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quad.vertices), quad.vertices, GL_STATIC_DRAW);
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad.indices), quad.indices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-}
-void CircleGraphicsComponent::Draw(GameObject& object)
-{
-	unsigned int shader = OpenGLContext::shaders["BallShader"];
-	glUseProgram(shader);
-
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(object.position, 0.0f))
-		* glm::scale(glm::mat4(1.0f), glm::vec3(object.size, 1.0f));
-
-	unsigned int modelUniform = glGetUniformLocation(shader, "model");
-	glUniformMatrix4fv(modelUniform, 1, GL_FALSE, glm::value_ptr(model));
-
-	unsigned int positionUniform = glGetUniformLocation(shader, "position");
-	glUniform2fv(positionUniform, 1, glm::value_ptr(object.position));
-
-	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+		glBindVertexArray(vertexArray);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
 }

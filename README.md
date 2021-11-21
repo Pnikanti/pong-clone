@@ -1,3 +1,4 @@
 # Pong clone
 
-Pong clone is implemented with OpenGL, GLEW, GLFW and GLM. Building is done with CMake.
+- Implemented with OpenGL, GLEW, GLFW, GLM, Box2D, ImGui and spdlog.
+- Building is done with CMake.
