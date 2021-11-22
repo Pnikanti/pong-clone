@@ -6,27 +6,14 @@
 
 std::vector<Entity*> EntityManager::Entities;
 
-void EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics)
+Entity* EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution)
 {
-	Entities.emplace_back(new Entity(input, physics, graphics));
+	Entity* x = new Entity(input, physics, graphics, position, size, rotation, color, bodytype, density, friction, restitution);
+	Entities.emplace_back(x);
+	return x;
 }
 
-void EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation)
-{
-	Entities.emplace_back(new Entity(input, physics, graphics, position, size, rotation));
-}
-
-void EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color)
-{
-	Entities.emplace_back(new Entity(input, physics, graphics, position, size, rotation, color));
-}
-
-void EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution)
-{
-	Entities.emplace_back(new Entity(input, physics, graphics, position, size, rotation, color, bodytype, density, friction, restitution));
-}
-
-void EntityManager::CreatePaddle(Side side, Input input)
+Entity* EntityManager::CreatePaddle(Side side, Input input)
 {
 	glm::vec2 position = glm::vec2(0.0f);
 	InputComponent* inputComponent = nullptr;
@@ -34,10 +21,10 @@ void EntityManager::CreatePaddle(Side side, Input input)
 	switch (side)
 	{
 	case Side::Left:
-		position = glm::vec2(-20.0f, 0.0f);
+		position = glm::vec2(-25.0f, 0.0f);
 		break;
 	case Side::Right:
-		position = glm::vec2(20.0f, 0.0f);
+		position = glm::vec2(25.0f, 0.0f);
 		break;
 	}
 	switch (input)
@@ -49,11 +36,11 @@ void EntityManager::CreatePaddle(Side side, Input input)
 		inputComponent = new ComputerInputComponent();
 		break;
 	}
-	CreateEntity(
+	Entity* x = CreateEntity(
 		inputComponent,
-		new PhysicsDynamicComponent(),
+		new PhysicsPolygonComponent(),
 		new OpenGL::QuadComponent(),
-		glm::vec2(0.3f, 3.0f),
+		glm::vec2(0.5f, 3.0f),
 		position,
 		0.0f,
 		glm::vec3(255.0f, 255.0f, 0.0f),
@@ -62,15 +49,16 @@ void EntityManager::CreatePaddle(Side side, Input input)
 		1.0f,
 		0.8f
 	);
+	return x;
 }
 
-void EntityManager::CreateBall()
+Entity* EntityManager::CreateBall()
 {
-	CreateEntity(
+	Entity* x = CreateEntity(
 		new InputComponent(),
-		new PhysicsDynamicComponent(),
+		new PhysicsCircleComponent(),
 		new OpenGL::QuadComponent(),
-		glm::vec2(0.3f),
+		glm::vec2(0.5f),
 		glm::vec2(0.0f, 4.0f),
 		30.0f,
 		glm::vec3(255.0f, 255.0f, 255.0f),
@@ -79,4 +67,5 @@ void EntityManager::CreateBall()
 		1.0f,
 		0.8f
 	);
+	return x;
 }

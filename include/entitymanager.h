@@ -1,9 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <box2d/b2_body.h>
 #include <memory>
 #include <vector>
-#include <box2d/b2_body.h>
 #include "entity.h"
 #include "game.h"
 
@@ -13,12 +13,11 @@ namespace OpenGL { class GraphicsComponent; }
 class EntityManager {
 public:
 	EntityManager(const EntityManager&) = delete; // copy-constructor
-	void CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics);
-	void CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation);
-	void CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color);
-	void CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution);
-	void CreatePaddle(Side side, Input input);
-	void CreateBall();
+
+	Entity* CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution);
+	Entity* CreatePaddle(Side side, Input input);
+	Entity* CreateBall();
+
 	static EntityManager& Get() { 
 		static EntityManager Instance; 
 		return Instance; 

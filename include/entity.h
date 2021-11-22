@@ -9,19 +9,19 @@ class PhysicsComponent;
 
 class Entity {
 public:
-	Entity(InputComponent* inputComponent, PhysicsComponent* physicsComponent, OpenGL::GraphicsComponent* graphicsComponent);
-	Entity(InputComponent* inputComponent, PhysicsComponent* physicsComponent, OpenGL::GraphicsComponent* graphicsComponent, glm::vec2 position, glm::vec2 size, float rotation);
-	Entity(InputComponent* inputComponent, PhysicsComponent* physicsComponent, OpenGL::GraphicsComponent* graphicsComponent, glm::vec2 position, glm::vec2 size, float rotation, glm::vec3 color);
 	Entity(InputComponent* inputComponent, PhysicsComponent* physicsComponent, OpenGL::GraphicsComponent* graphicsComponent, glm::vec2 position, glm::vec2 size, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution);
-
 	~Entity();
+
 	void Advance();
 	void Draw();
 	void ProcessInput();
+
+	PhysicsComponent* GetPhysicsComponent();
 	glm::vec2 GetSize();
 	glm::vec2 GetPosition();
 	float GetRotationDegrees();
 	float GetRotationRadians();
+
 	void SetAttributes(glm::vec2 position, glm::vec2 size, float rotation);
 	void SetAttributes(glm::vec2 position, glm::vec2 size, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution);
 

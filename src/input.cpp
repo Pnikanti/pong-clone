@@ -4,6 +4,7 @@
 #include "entity.h"
 #include "game.h"
 #include "log.h"
+#include "physics.h"
 
 void InputComponent::Update(Entity& entity)
 {
@@ -23,11 +24,17 @@ void InputComponent::Update()
 void PlayerInputComponent::Update(Entity& entity)
 {
 	if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_W) == GLFW_PRESS)
+	{
 		LOGGER_INFO("Upwards!");
+		auto body = entity.GetPhysicsComponent()->Body;
+		body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y + 0.3f), entity.GetRotationRadians());
+	}
 	else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_S) == GLFW_PRESS)
+	{
 		LOGGER_INFO("Downwards!");
-	else
-		return;
+		auto body = entity.GetPhysicsComponent()->Body;
+		body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y - 0.3f), entity.GetRotationRadians());
+	}
 }
 
 void ComputerInputComponent::Update(Entity& entity)
@@ -64,7 +71,7 @@ void GameInputComponent::Update(Game& game)
 	}
 	case GameState::GameOver:
 	{
-		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
 			game.State = GameState::MainMenu;
 			LOGGER_INFO("Main menu");

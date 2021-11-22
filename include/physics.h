@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <box2d/b2_world.h>
 #include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_circle_shape.h>
 #include <box2d/b2_body.h>
 #include <box2d/b2_fixture.h>
 
@@ -22,26 +23,33 @@ private:
 class PhysicsComponent {
 public:
 	PhysicsComponent();
-	virtual ~PhysicsComponent() = default;
-	void CreateEntity(Entity& entity);
+	virtual ~PhysicsComponent();
+	virtual void CreateFromEntity(Entity& entity);
 	virtual void Update(Entity& entity);
 public:
 	b2Body* Body;
 	b2Fixture* Fixture;
 	b2BodyDef BodyDefinition;
-	b2PolygonShape Shape;
 	b2FixtureDef FixtureDefinition;
 };
 
-class PhysicsStaticComponent : public PhysicsComponent {
+class PhysicsPolygonComponent : public PhysicsComponent {
 public:
-	PhysicsStaticComponent();
-	~PhysicsStaticComponent();
+	PhysicsPolygonComponent() = default;
+	~PhysicsPolygonComponent() = default;
+	void Update(Entity& entity) override;
+	void CreateFromEntity(Entity& entity) override;
+public:
+	b2PolygonShape Shape;
 };
 
-class PhysicsDynamicComponent : public PhysicsComponent {
+
+class PhysicsCircleComponent : public PhysicsComponent {
 public:
-	PhysicsDynamicComponent();
-	~PhysicsDynamicComponent();
+	PhysicsCircleComponent() = default;
+	~PhysicsCircleComponent() = default;
 	void Update(Entity& entity) override;
+	void CreateFromEntity(Entity& entity) override;
+public:
+	b2CircleShape Shape;
 };
