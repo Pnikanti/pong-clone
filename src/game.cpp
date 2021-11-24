@@ -26,6 +26,7 @@ Game::Game(const char* appName, int width, int height) :
 	CreateGameGui();
 
 	Physics = new PhysicsWorld();
+	PhysicsListener = new ContactListener();
 	Input = new GameInputComponent();
 
 	Context = new OpenGL::Context(width, height, appName);
@@ -113,6 +114,24 @@ void Game::UpdateAllEntities()
 
 		e->Advance();
 
+		std::vector<Contact>::iterator position;
+		for (position = PhysicsListener->Contacts.begin(); position != PhysicsListener->Contacts.end(); ++position)
+		{
+			Contact x = *position;
+			int mod = 0;
+
+			if ((x.fixtureB == e->GetPhysicsComponent()->Fixture))
+			{
+				LOGGER_INFO("Intersecting!");
+				if (e->Position.x > 0)
+					mod = -1;
+				else
+					mod = 1;
+
+				e->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(0.8f * mod, 0.2f * mod), e->GetPhysicsComponent()->Body->GetWorldCenter(), true);
+			}
+
+		}
 		if (e->BodyType == b2_dynamicBody)
 		{
 			float xPos = e->Position.x;

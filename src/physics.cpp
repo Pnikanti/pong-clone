@@ -26,6 +26,33 @@ void PhysicsWorld::Update()
 	World->Step(Game::TimeStep, VelocityIterations, PositionIterations);
 }
 
+ContactListener::ContactListener() : Contacts() 
+{ 
+	Contacts.reserve(5); 
+	PhysicsWorld::World->SetContactListener(this);
+}
+
+ContactListener::~ContactListener() {}
+
+void ContactListener::BeginContact(b2Contact* contact)
+{
+	Contact x = { contact->GetFixtureA(), contact->GetFixtureB() };
+	Contacts.emplace_back(x);
+}
+
+void ContactListener::EndContact(b2Contact* contact)
+{
+	Contact x = { contact->GetFixtureA(), contact->GetFixtureB() };
+	std::vector<Contact>::iterator position;
+	position = std::find(Contacts.begin(), Contacts.end(), x);
+
+	if (position != Contacts.end())
+		Contacts.erase(position);
+}
+
+void ContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifold) {}
+void ContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {}
+
 PhysicsComponent::PhysicsComponent() :
 	Body(nullptr),
 	Fixture(nullptr),

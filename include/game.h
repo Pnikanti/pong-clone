@@ -6,6 +6,7 @@ class Entity;
 class OrthographicCamera;
 class PhysicsWorld;
 class GameInputComponent;
+class ContactListener;
 
 enum class GameState
 {
@@ -40,5 +41,6 @@ public:
 private:
 	OpenGL::Context* Context;
 	PhysicsWorld* Physics;
+	ContactListener* PhysicsListener;
 	GameInputComponent* Input;
 };
