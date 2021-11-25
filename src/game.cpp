@@ -54,8 +54,10 @@ Game::~Game()
 
 void Game::Start()
 {
+	CreateWalls();
 	EntityManager::Get().CreatePaddle(Side::Left, Input::Human);
 	EntityManager::Get().CreatePaddle(Side::Right, Input::Human);
+
 	Entity* ball = EntityManager::Get().CreateBall();
 	ball->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(-4.0f, 0.0f), ball->GetPhysicsComponent()->Body->GetWorldCenter(), true);
 }
@@ -103,6 +105,93 @@ void Game::ProcessInput()
 			i->ProcessInput();
 	}
 }
+
+void Game::SolvePhysics()
+{
+	std::vector<Contact>::iterator position;
+	for (position = PhysicsListener->Contacts.begin(); position != PhysicsListener->Contacts.end(); ++position)
+	{
+		Contact x = *position;
+
+		if (x.fixtureA->GetBody()->GetType() == b2_staticBody)
+			continue;
+
+		int directionX = 0;
+		int directionY = 0;
+
+		b2Body* bodyA = x.fixtureA->GetBody();
+		b2Body* bodyB = x.fixtureB->GetBody();
+
+		b2Vec2 worldpoints = x.worldManifold.points[0];
+
+		b2Vec2 intersectionA = bodyA->GetWorldPoint(bodyA->GetLocalPoint(bodyB->GetWorldCenter()));
+		b2Vec2 intersectionB = bodyB->GetWorldPoint(bodyB->GetLocalPoint(bodyA->GetWorldCenter()));
+
+		if (intersectionA.y > intersectionB.y)
+			directionY = 1;
+		else
+			directionY = -1;
+
+		if (worldpoints.x > 0)
+			directionX = -1;
+		else
+			directionX = 1;
+
+		float r = ((float)rand() / (float)RAND_MAX) / 2;
+		bodyB->ApplyLinearImpulse(b2Vec2(0.3f * directionX, r * directionY), bodyB->GetWorldCenter(), true);
+	}
+}
+
+bool Game::CheckOutOfBounds(Entity* e)
+{
+	float positionX = e->Position.x;
+
+	if (positionX < -30.0f)
+	{
+		State = GameState::GameOver;
+		Game::End();
+		return true;
+	}
+
+	else if (positionX > 30.0f)
+	{
+		State = GameState::GameOver;
+		Game::End();
+		return true;
+	}
+	return false;
+}
+
+void Game::CreateWalls()
+{
+	EntityManager::Get().CreateEntity(
+		new InputComponent(),
+		new PhysicsPolygonComponent(),
+		new OpenGL::QuadComponent(),
+		glm::vec2(30.0f, 0.5f),
+		glm::vec2(0.0f, 20.5f),
+		0.0f,
+		glm::vec3(0.0f),
+		b2_staticBody,
+		0.0f,
+		0.0f,
+		1.0f
+	);
+	EntityManager::Get().CreateEntity(
+		new InputComponent(),
+		new PhysicsPolygonComponent(),
+		new OpenGL::QuadComponent(),
+		glm::vec2(30.0f, 0.5f),
+		glm::vec2(0.0f, -20.5f),
+		0.0f,
+		glm::vec3(0.0f),
+		b2_staticBody,
+		0.0f,
+		0.0f,
+		1.0f
+	);
+}
+
 void Game::UpdateAllEntities()
 {
 	for (auto i = EntityManager::GetEntities().begin(); i != EntityManager::GetEntities().end(); i++)
@@ -113,43 +202,11 @@ void Game::UpdateAllEntities()
 			continue;
 
 		e->Advance();
+		SolvePhysics();
 
-		std::vector<Contact>::iterator position;
-		for (position = PhysicsListener->Contacts.begin(); position != PhysicsListener->Contacts.end(); ++position)
-		{
-			Contact x = *position;
-			int mod = 0;
-
-			if ((x.fixtureB == e->GetPhysicsComponent()->Fixture))
-			{
-				LOGGER_INFO("Intersecting!");
-				if (e->Position.x > 0)
-					mod = -1;
-				else
-					mod = 1;
-
-				e->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(0.8f * mod, 0.2f * mod), e->GetPhysicsComponent()->Body->GetWorldCenter(), true);
-			}
-
-		}
 		if (e->BodyType == b2_dynamicBody)
-		{
-			float xPos = e->Position.x;
-
-			if ( xPos < -25.0f)
-			{
-				State = GameState::GameOver;
-				Game::End();
+			if (CheckOutOfBounds(e))
 				break;
-			}
-
-			else if (xPos > 25.0f)
-			{
-				State = GameState::GameOver;
-				Game::End();
-				break;
-			}
-		}
 	}
 }
 

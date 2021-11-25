@@ -25,15 +25,15 @@ void PlayerInputComponent::Update(Entity& entity)
 {
 	if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		LOGGER_INFO("Upwards!");
 		auto body = entity.GetPhysicsComponent()->Body;
-		body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y + 0.3f), entity.GetRotationRadians());
+		if (entity.GetPosition().y < 17.5f)
+			body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y + 0.4f), entity.GetRotationRadians());
 	}
 	else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		LOGGER_INFO("Downwards!");
 		auto body = entity.GetPhysicsComponent()->Body;
-		body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y - 0.3f), entity.GetRotationRadians());
+		if (entity.GetPosition().y > -17.5f)
+			body->SetTransform(b2Vec2(entity.GetPosition().x, entity.GetPosition().y - 0.4f), entity.GetRotationRadians());
 	}
 }
 

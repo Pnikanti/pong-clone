@@ -36,13 +36,19 @@ ContactListener::~ContactListener() {}
 
 void ContactListener::BeginContact(b2Contact* contact)
 {
-	Contact x = { contact->GetFixtureA(), contact->GetFixtureB() };
+	b2WorldManifold manifold;
+	contact->GetWorldManifold(&manifold);
+
+	Contact x = { contact->GetFixtureA(), contact->GetFixtureB(), manifold };
 	Contacts.emplace_back(x);
 }
 
 void ContactListener::EndContact(b2Contact* contact)
 {
-	Contact x = { contact->GetFixtureA(), contact->GetFixtureB() };
+	b2WorldManifold manifold;
+	contact->GetWorldManifold(&manifold);
+
+	Contact x = { contact->GetFixtureA(), contact->GetFixtureB(), manifold };
 	std::vector<Contact>::iterator position;
 	position = std::find(Contacts.begin(), Contacts.end(), x);
 

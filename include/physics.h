@@ -25,6 +25,7 @@ private:
 struct Contact {
 	b2Fixture* fixtureA;
 	b2Fixture* fixtureB;
+	b2WorldManifold worldManifold;
 	bool operator==(const Contact& other) const { return (fixtureA == other.fixtureA) && (fixtureB == other.fixtureB); }
 };
 

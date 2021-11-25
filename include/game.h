@@ -30,10 +30,15 @@ public:
 	void Start();
 	void End();
 	void Loop();
+	void CreateWalls();
 	void ProcessInput();
+	void SolvePhysics();
 	void UpdateAllEntities();
 	void CreateDebugGui();
 	void CreateGameGui();
+
+	bool CheckOutOfBounds(Entity* e);
+
 public:
 	static std::vector<OpenGL::GuiContext*> GuiContexts;
 	static float TimeStep;
