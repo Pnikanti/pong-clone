@@ -4,6 +4,8 @@
 #include <box2d/b2_body.h>
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include <string>
 #include "entity.h"
 #include "game.h"
 
@@ -18,14 +20,23 @@ public:
 	Entity* CreatePaddle(Side side, Input input);
 	Entity* CreateBall();
 
-	static EntityManager& Get() { 
-		static EntityManager Instance; 
-		return Instance; 
+	static EntityManager& Get() {
+		static EntityManager Instance;
+		return Instance;
 	}
-	static void Init(size_t size) { EntityManager::Get().Entities.reserve(size); }
-	static std::vector<Entity*>& GetEntities() { return EntityManager::Get().Entities; }
+	static void Init(size_t size) { 
+		EntityManager::GetEntities().reserve(size); 
+		EntityManager::GetEntityMap().reserve(size);
+	}
+	static std::vector<Entity*>& GetEntities() {
+		static std::vector<Entity*> Entities;
+		return Entities;
+	}
+	static std::unordered_map<std::string, Entity*>& GetEntityMap() { 
+		static std::unordered_map<std::string, Entity*> EntityMap;
+		return EntityMap; 
+	}
+
 protected:
 	EntityManager::EntityManager() = default; // constructor
-private:
-	static std::vector<Entity*> Entities;
 };

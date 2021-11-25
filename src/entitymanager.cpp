@@ -3,13 +3,12 @@
 #include "graphics.h"
 #include "context.h"
 #include "input.h"
-
-std::vector<Entity*> EntityManager::Entities;
+#include "log.h"
 
 Entity* EntityManager::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution)
 {
 	Entity* x = new Entity(input, physics, graphics, position, size, rotation, color, bodytype, density, friction, restitution);
-	Entities.emplace_back(x);
+	EntityManager::GetEntities().emplace_back(x);
 	return x;
 }
 
@@ -67,5 +66,6 @@ Entity* EntityManager::CreateBall()
 		1.0f,
 		0.8f
 	);
+	EntityManager::GetEntityMap().emplace(std::string("Ball"), x);
 	return x;
 }

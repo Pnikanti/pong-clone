@@ -50,6 +50,7 @@ Game::~Game()
 			delete i;
 	}
 	EntityManager::GetEntities().clear();
+	EntityManager::GetEntityMap().clear();
 }
 
 void Game::Start()
@@ -57,9 +58,13 @@ void Game::Start()
 	CreateWalls();
 	EntityManager::Get().CreatePaddle(Side::Left, Input::Human);
 	EntityManager::Get().CreatePaddle(Side::Right, Input::Human);
-
 	Entity* ball = EntityManager::Get().CreateBall();
-	ball->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(-4.0f, 0.0f), ball->GetPhysicsComponent()->Body->GetWorldCenter(), true);
+	int directionX = 0;
+	if (rand() > (RAND_MAX / 2))
+		directionX = -1;
+	else
+		directionX = 1;
+	ball->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(4.0f * directionX, 0.0f), ball->GetPhysicsComponent()->Body->GetWorldCenter(), true);
 }
 
 void Game::End()
@@ -70,6 +75,7 @@ void Game::End()
 			delete i;
 	}
 	EntityManager::GetEntities().clear();
+	EntityManager::GetEntityMap().clear();
 }
 
 void Game::Loop()
@@ -89,9 +95,11 @@ void Game::Loop()
 		{
 			Physics->Update();
 			UpdateAllEntities();
+			GameOver = IsBallOutOfBounds();
 			lag -= TimeStep;
 		}
 		Context->RenderOneFrame();
+		IsGameOver();
 	}
 }
 
@@ -121,7 +129,7 @@ void Game::SolvePhysics()
 
 		b2Body* bodyA = x.fixtureA->GetBody();
 		b2Body* bodyB = x.fixtureB->GetBody();
-
+		 
 		b2Vec2 worldpoints = x.worldManifold.points[0];
 
 		b2Vec2 intersectionA = bodyA->GetWorldPoint(bodyA->GetLocalPoint(bodyB->GetWorldCenter()));
@@ -142,26 +150,32 @@ void Game::SolvePhysics()
 	}
 }
 
-bool Game::CheckOutOfBounds(Entity* e)
+bool Game::IsBallOutOfBounds()
 {
+	auto it = EntityManager::GetEntityMap().find("Ball");
+
+	if (it == EntityManager::GetEntityMap().end())
+		return false;
+
+	Entity* e = it->second;
 	float positionX = e->Position.x;
 
 	if (positionX < -30.0f)
-	{
-		State = GameState::GameOver;
-		Game::End();
 		return true;
-	}
 
 	else if (positionX > 30.0f)
-	{
-		State = GameState::GameOver;
-		Game::End();
 		return true;
-	}
 	return false;
 }
 
+void Game::IsGameOver()
+{
+	if (GameOver)
+	{
+		State = GameState::GameOver;
+		End();
+	}
+}
 void Game::CreateWalls()
 {
 	EntityManager::Get().CreateEntity(
@@ -203,10 +217,6 @@ void Game::UpdateAllEntities()
 
 		e->Advance();
 		SolvePhysics();
-
-		if (e->BodyType == b2_dynamicBody)
-			if (CheckOutOfBounds(e))
-				break;
 	}
 }
 

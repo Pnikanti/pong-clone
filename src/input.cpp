@@ -5,6 +5,7 @@
 #include "game.h"
 #include "log.h"
 #include "physics.h"
+#include "entitymanager.h"
 
 void InputComponent::Update(Entity& entity)
 {
@@ -39,7 +40,7 @@ void PlayerInputComponent::Update(Entity& entity)
 
 void ComputerInputComponent::Update(Entity& entity)
 {
-
+	auto body = entity.GetPhysicsComponent()->Body;
 }
 
 void GameInputComponent::Update(Game& game)
@@ -73,9 +74,13 @@ void GameInputComponent::Update(Game& game)
 	{
 		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			game.State = GameState::MainMenu;
-			LOGGER_INFO("Main menu");
-			game.End();
+			game.State = GameState::Play;
+			LOGGER_INFO("Play");
+			game.Start();
+		}
+		else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		{
+			glfwSetWindowShouldClose(OpenGL::Context::Window, true);
 		}
 		break;
 	}

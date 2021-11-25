@@ -37,11 +37,14 @@ public:
 	void CreateDebugGui();
 	void CreateGameGui();
 
-	bool CheckOutOfBounds(Entity* e);
+	void IsGameOver();
+	bool IsBallOutOfBounds();
+
 
 public:
 	static std::vector<OpenGL::GuiContext*> GuiContexts;
 	static float TimeStep;
+	bool GameOver;
 	GameState State;
 private:
 	OpenGL::Context* Context;
