@@ -6,7 +6,7 @@ class Game;
 class InputComponent {
 public:
 	virtual void Update(Entity& entity);
-	virtual void Update(Game& game);
+	virtual void Update(Game& gameInstance);
 	virtual void Update();
 };
 
@@ -23,5 +23,5 @@ private:
 };
 class GameInputComponent : public InputComponent {
 public:
-	void Update(Game& game);
+	void Update(Game& gameInstance);
 };

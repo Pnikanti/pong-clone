@@ -9,7 +9,7 @@ namespace OpenGL {
 		GuiManager(const GuiManager&) = delete;
 		~GuiManager();
 
-		static GuiManager& Get() {
+		inline static GuiManager& Get() {
 			static GuiManager Instance;
 			return Instance;
 		}
@@ -18,7 +18,7 @@ namespace OpenGL {
 		void Draw();
 		void Begin();
 		void End();
-		std::vector<GuiContext*>& GetContexts();
+		inline std::vector<GuiContext*>& GetContexts() { return GuiContexts;  }
 	protected:
 		GuiManager::GuiManager() = default;
 	private:

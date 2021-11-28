@@ -51,8 +51,8 @@ public:
 
 public:
 	static float TimeStep;
+	static GameState State;
 	bool GameOver;
-	GameState State;
 private:
 	OpenGL::Context* Context;
 	PhysicsWorld* Physics;

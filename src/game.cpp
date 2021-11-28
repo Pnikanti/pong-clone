@@ -14,9 +14,10 @@
 #include "input.h"
 
 float Game::TimeStep = 1.0f / 60.0f;
+GameState Game::State = GameState::MainMenu;
 
 Game::Game(const char* appName, int width, int height) :
-	Context(nullptr), State(GameState::MainMenu)
+	Context(nullptr)
 {
 	Logger::Init(appName);
 	EntityManager::Get().Init(3);

@@ -11,7 +11,6 @@ namespace OpenGL {
 	public:
 		virtual void Update();
 		virtual void Update(Entity& entity);
-		virtual void Update(Game& game);
 	};
 
 	class DebugGuiContext : public GuiContext {
@@ -26,7 +25,7 @@ namespace OpenGL {
 	class GameGuiContext : public GuiContext {
 	public:
 		GameGuiContext();
-		void Update(Game& game) override;
+		void Update() override;
 	public:
 		ImGuiWindowFlags wFlags;
 		ImGuiWindowFlags wBackgroundFlags;
@@ -37,6 +36,5 @@ namespace OpenGL {
 		float fFriction = 0.5f;
 		float fRestitution = 0.5f;
 		float fRotation = 30.0f;
-
 	};
 }

@@ -16,14 +16,14 @@ class EntityManager {
 public:
 	EntityManager(const EntityManager&) = delete; // copy-constructor
 
-	static EntityManager& Get() {
+	inline static EntityManager& Get() {
 		static EntityManager Instance;
 		return Instance;
 	}
 	void Init(size_t size);
 	void Draw();
-	std::vector<Entity*>& GetEntities();
-	robin_hood::unordered_map<std::string, Entity*>& GetEntityMap();
+	inline std::vector<Entity*>& GetEntities() { return Entities; }
+	inline robin_hood::unordered_map<std::string, Entity*>& GetEntityMap() { return EntityMap; }
 protected:
 	EntityManager::EntityManager() = default; // constructor
 private:

@@ -41,9 +41,7 @@ namespace OpenGL {
 		for (auto i : GuiContexts)
 		{
 			if (i != nullptr)
-			{
 				i->Update();
-			}
 		}
 		End();
 	}
@@ -59,10 +57,5 @@ namespace OpenGL {
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
-	std::vector<GuiContext*>& GuiManager::GetContexts()
-	{
-		return GuiContexts;
 	}
 }

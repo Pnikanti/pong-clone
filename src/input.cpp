@@ -65,15 +65,15 @@ void ComputerInputComponent::Update(Entity& entity)
 	}
 }
 
-void GameInputComponent::Update(Game& game)
+void GameInputComponent::Update(Game& gameInstance)
 {
-	switch (game.State)
+	switch (Game::State)
 	{
 	case GameState::Play:
 	{
 		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
-			game.State = GameState::MainMenu;
+			Game::State = GameState::MainMenu;
 			LOGGER_INFO("Main menu");
 		}
 		break;
@@ -86,9 +86,9 @@ void GameInputComponent::Update(Game& game)
 		}
 		else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			game.State = GameState::Play;
+			Game::State = GameState::Play;
 			LOGGER_INFO("Play");
-			game.Start();
+			gameInstance.Start();
 		}
 		break;
 	}
@@ -96,9 +96,9 @@ void GameInputComponent::Update(Game& game)
 	{
 		if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			game.State = GameState::Play;
+			Game::State = GameState::Play;
 			LOGGER_INFO("Play");
-			game.Start();
+			gameInstance.Start();
 		}
 		else if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{

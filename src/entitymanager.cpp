@@ -19,13 +19,3 @@ void EntityManager::Draw()
 			i->Draw();
 	}
 }
-
-std::vector<Entity*>& EntityManager::GetEntities()
-{
-	return Entities;
-}
-
-robin_hood::unordered_map<std::string, Entity*>& EntityManager::GetEntityMap()
-{
-	return EntityMap;
-}
