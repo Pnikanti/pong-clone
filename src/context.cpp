@@ -3,13 +3,14 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "context.h"
-#include "gui.h"
 #include "camera.h"
 #include "game.h"
 #include "log.h"
 #include "shader.h"
 #include "entity.h"
 #include "entitymanager.h"
+#include "gui.h"
+#include "guimanager.h"
 
 void* operator new(size_t size)
 {
@@ -31,7 +32,6 @@ namespace OpenGL {
 	glm::mat4 Context::viewProjectionMatrix = glm::mat4(0.0f);
 	OrthographicCamera* Context::Camera = nullptr;
 	GLFWwindow* Context::Window = nullptr;
-	Gui* Context::GuiContext = nullptr;
 	std::unordered_map<std::string, unsigned int> Context::Shaders = std::unordered_map<std::string, unsigned int>();
 
 	Context::Context(int width, int height, const char* windowName)
@@ -67,7 +67,6 @@ namespace OpenGL {
 		glfwSwapInterval(1); // Enable vsync
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-		GuiContext = new Gui();
 		LOGGER_INFO("Context initialized!");
 	}
 
@@ -91,19 +90,19 @@ namespace OpenGL {
 		Camera = CreateCamera((float)SCR_WIDTH, (float)SCR_HEIGHT);
 		UpdateViewProjectionMatrix(Camera);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-	}
 
-	void Context::RenderGui()
-	{
-		GuiContext->Begin();
-		for (auto i : Game::GuiContexts)
+		glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
+
+		for (auto [shaderName, shaderProgram] : Shaders)
 		{
-			if (i != nullptr)
+			glUseProgram(shaderProgram);
+			unsigned int uResolution = glGetUniformLocation(shaderProgram, "resolution");
+			if (uResolution)
 			{
-				i->Update();
+				LOGGER_INFO("Setting resolution: {0} to uniform!", glm::to_string(resolution));
+				glUniform2fv(uResolution, 1, glm::value_ptr(resolution));
 			}
 		}
-		GuiContext->End();
 	}
 
 	void Context::AddShader(std::string& shaderName, std::string& vertexShader, std::string& fragmentShader)
@@ -124,6 +123,19 @@ namespace OpenGL {
 		Camera = CreateCamera((float)SCR_WIDTH, (float)SCR_HEIGHT);
 		UpdateViewProjectionMatrix(Camera);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+		glm::vec2 resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
+
+		for (auto [shaderName, shaderProgram] : Shaders)
+		{
+			glUseProgram(shaderProgram);
+			unsigned int uResolution = glGetUniformLocation(shaderProgram, "resolution");
+			if (uResolution)
+			{
+				LOGGER_INFO("Setting resolution: {0} to uniform!", glm::to_string(resolution));
+				glUniform2fv(uResolution, 1, glm::value_ptr(resolution));
+			}
+		}
 	}
 
 	void Context::UpdateViewProjectionMatrix(OrthographicCamera* camera)
@@ -131,21 +143,18 @@ namespace OpenGL {
 		LOGGER_TRACE("Updating viewProjectionmatrix: {0}", glm::to_string(camera->viewProjectionMatrix));
 		viewProjectionMatrix = camera->viewProjectionMatrix;
 
-		for (auto i : Shaders)
+		for (auto [shaderName, shaderProgram] : Shaders)
 		{
-			glUseProgram(i.second);
-			unsigned int viewProjectionUniform = glGetUniformLocation(i.second, "viewProjection");
+			glUseProgram(shaderProgram);
+			unsigned int viewProjectionUniform = glGetUniformLocation(shaderProgram, "viewProjection");
 			glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
 		}
 	}
 
 	void Context::UpdateAllRenderTargets()
 	{
-		for (auto i : EntityManager::GetEntities())
-		{
-			if (i != nullptr)
-				i->Draw();
-		}
+		EntityManager::Get().Draw();
+		GuiManager::Get().Draw();
 	}
 
 	OrthographicCamera* Context::CreateCamera(float width, float height)
@@ -172,7 +181,6 @@ namespace OpenGL {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		UpdateAllRenderTargets();
-		RenderGui();
 		glfwSwapBuffers(Window);
 		glfwPollEvents();
 	}

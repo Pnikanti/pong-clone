@@ -1,6 +1,7 @@
 #include <glew/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "graphics.h"
 #include "context.h"
@@ -10,6 +11,11 @@
 namespace OpenGL
 {
 	void GraphicsComponent::Draw(Entity& entity) {}
+	void GraphicsComponent::SetShader(std::string& shaderName)
+	{
+		shader = Context::Shaders[shaderName];
+	}
+
 	QuadComponent::QuadComponent()
 		: quad(Quad()), vertexArray(0), vertexBuffer(0), elementBuffer(0)
 	{
@@ -41,16 +47,15 @@ namespace OpenGL
 	void QuadComponent::Draw(Entity& entity)
 	{
 		glUseProgram(shader);
-
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(entity.GetPosition(), 0.0f))
 			* glm::rotate(glm::mat4(1.0f), entity.GetRotationRadians(), {0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), glm::vec3(entity.GetSize(), 1.0f));
 
-		unsigned int modelUniform = glGetUniformLocation(shader, "model");
-		glUniformMatrix4fv(modelUniform, 1, GL_FALSE, glm::value_ptr(model));
+		unsigned int uModel = glGetUniformLocation(shader, "model");
+		glUniformMatrix4fv(uModel, 1, GL_FALSE, glm::value_ptr(model));
 
-		unsigned int colorUniform = glGetUniformLocation(shader, "color");
-		glUniform3fv(colorUniform, 1, glm::value_ptr(entity.Color));
+		unsigned int uColor = glGetUniformLocation(shader, "color");
+		glUniform3fv(uColor, 1, glm::value_ptr(entity.Color));
 
 		glBindVertexArray(vertexArray);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

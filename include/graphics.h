@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 class Entity;
 
 namespace OpenGL
@@ -22,6 +24,9 @@ namespace OpenGL
 	public:
 		virtual ~GraphicsComponent() = default;
 		virtual void Draw(Entity& entity);
+		void SetShader(std::string& shaderName);
+	protected:
+		unsigned int shader;
 	};
 
 	class QuadComponent : public GraphicsComponent
@@ -35,6 +40,17 @@ namespace OpenGL
 		unsigned int vertexArray;
 		unsigned int vertexBuffer;
 		unsigned int elementBuffer;
-		unsigned int shader;
+	};
+	class CircleComponent : public GraphicsComponent
+	{
+	public:
+		CircleComponent();
+		~CircleComponent();
+		void Draw(Entity& entity) override;
+	private:
+		Quad quad;
+		unsigned int vertexArray;
+		unsigned int vertexBuffer;
+		unsigned int elementBuffer;
 	};
 }

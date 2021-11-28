@@ -1,7 +1,5 @@
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 #include <box2d/b2_body.h>
 #include "gui.h"
 #include "entitymanager.h"
@@ -10,40 +8,12 @@
 #include "log.h"
 #include "graphics.h"
 #include "physics.h"
+#include "game.h"
 
 namespace OpenGL {
-	Gui::Gui() 
-		: Context(ImGui::CreateContext())
-	{
-		IMGUI_CHECKVERSION();
-		ImGui::SetCurrentContext(Context);
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-
-		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForOpenGL(Context::Window, true);
-		ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
-	}
-
-	Gui::~Gui() {
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void Gui::Begin() {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void Gui::End() {
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
 	void GuiContext::Update() {}
+	void GuiContext::Update(Entity& entity) {}
+	void GuiContext::Update(Game& game) {}
 
 	DebugGuiContext::DebugGuiContext() : wFlags(0), visible(true)
 	{
@@ -76,11 +46,20 @@ namespace OpenGL {
 		ImGui::Text("Total Allocated (bytes): %u", Context::AllocatedMemory);
 		ImGui::Text("Freed (bytes): %u", Context::FreedMemory);
 		ImGui::Text("Current (bytes): %u", Context::AllocatedMemory - Context::FreedMemory);
-		ImGui::Text("Entity vector size: %u", EntityManager::GetEntities().size());
+		ImGui::Text("Entity vector size: %u", EntityManager::Get().GetEntities().size());
 		ImGui::End();
 	}
 
-	void GameGuiContext::Update()
+	void GameGuiContext::Update(Game& game)
 	{
+		if (game.State == GameState::MainMenu)
+		{
+			ImGui::SetNextWindowPos(ImVec2((int)Context::SCR_WIDTH / 2, (int)Context::SCR_HEIGHT / 2)); // top-left
+			ImGui::SetNextWindowSize(ImVec2(500, 400));
+			ImGui::Begin("Main Menu", &visible, wFlags);
+			ImGui::Text("Pong");
+			ImGui::Text("Press \"Space\" to play");
+			ImGui::End();
+		}
 	}
 }

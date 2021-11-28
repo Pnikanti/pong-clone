@@ -40,7 +40,29 @@ void PlayerInputComponent::Update(Entity& entity)
 
 void ComputerInputComponent::Update(Entity& entity)
 {
-	auto body = entity.GetPhysicsComponent()->Body;
+	CurrentMovement = (float)glfwGetTime();
+	// Downgrade AI movements per second
+	if (CurrentMovement > PreviousMovement + 0.03f)
+	{
+		PreviousMovement = CurrentMovement;
+		auto body = entity.GetPhysicsComponent()->Body;
+		auto it = EntityManager::Get().GetEntityMap().find("Ball");
+
+		if (it == EntityManager::Get().GetEntityMap().end())
+			return;
+
+		Entity* ball = it->second;
+		glm::vec2 ballPosition = ball->GetPosition();
+		glm::vec2 paddlePosition = entity.GetPosition();
+		// Downgrade AI accuracy
+		if (ballPosition.y - 0.5f <= paddlePosition.y && paddlePosition.y <= ballPosition.y + 0.5f )
+			return;
+		// Complicated AI logic here
+		if (ballPosition.y > paddlePosition.y)
+			body->SetTransform(b2Vec2(paddlePosition.x, paddlePosition.y + 0.4f), entity.GetRotationRadians());
+		else if (ballPosition.y < paddlePosition.y)
+			body->SetTransform(b2Vec2(paddlePosition.x, paddlePosition.y - 0.4f), entity.GetRotationRadians());
+	}
 }
 
 void GameInputComponent::Update(Game& game)

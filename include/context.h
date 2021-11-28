@@ -1,5 +1,4 @@
 #pragma once
-#include <imgui.h>
 #include <unordered_map>
 #include <glm/glm.hpp>
 
@@ -27,11 +26,9 @@ namespace OpenGL {
 		static void FrameBufferSizeCb(GLFWwindow* window, int width, int height);
 		static OrthographicCamera* CreateCamera(float width, float height);
 		static void UpdateViewProjectionMatrix(OrthographicCamera* camera);
-		void RenderGui();
 		void UpdateAllRenderTargets();
 	private:
 		static OrthographicCamera* Camera;
-		static Gui* GuiContext;
 		static glm::mat4 viewProjectionMatrix;
 	};
 }

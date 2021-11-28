@@ -2,8 +2,8 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <box2d/b2_body.h>
-#include "graphics.h"
 
+namespace OpenGL { class GraphicsComponent; }
 class InputComponent;
 class PhysicsComponent;
 
@@ -17,6 +17,7 @@ public:
 	void ProcessInput();
 
 	PhysicsComponent* GetPhysicsComponent();
+	OpenGL::GraphicsComponent* GetGraphicsComponent();
 	glm::vec2 GetSize();
 	glm::vec2 GetPosition();
 	float GetRotationDegrees();

@@ -2,7 +2,6 @@
 #include <box2d/b2_body.h>
 #include <string.h>
 #include "context.h"
-#include "gui.h"
 #include "game.h"
 #include "log.h"
 #include "camera.h"
@@ -10,17 +9,18 @@
 #include "physics.h"
 #include "entity.h"
 #include "entitymanager.h"
+#include "gui.h"
+#include "guimanager.h"
 #include "input.h"
 
-
-std::vector<OpenGL::GuiContext*> Game::GuiContexts(std::vector<OpenGL::GuiContext*>(2));
 float Game::TimeStep = 1.0f / 60.0f;
 
 Game::Game(const char* appName, int width, int height) :
 	Context(nullptr), State(GameState::MainMenu)
 {
 	Logger::Init(appName);
-	EntityManager::Init(3);
+	EntityManager::Get().Init(3);
+	OpenGL::GuiManager::Get().Init(2);
 
 	CreateDebugGui();
 	CreateGameGui();
@@ -31,34 +31,36 @@ Game::Game(const char* appName, int width, int height) :
 
 	Context = new OpenGL::Context(width, height, appName);
 	Context->AddShader(std::string("BasicShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
+	Context->AddShader(std::string("BallShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/ballfragment.shader"));
 	Context->Start();
 	Loop();
 }
 
 Game::~Game()
 {
-	for (auto i : GuiContexts)
+	for (auto i : OpenGL::GuiManager::Get().GetContexts())
 	{
 		if (i != nullptr)
 			delete i;
 	}
-	GuiContexts.clear();
+	OpenGL::GuiManager::Get().GetContexts().clear();
 
-	for (auto i : EntityManager::GetEntities())
+	for (auto i : EntityManager::Get().GetEntities())
 	{
 		if (i != nullptr)
 			delete i;
 	}
-	EntityManager::GetEntities().clear();
-	EntityManager::GetEntityMap().clear();
+	EntityManager::Get().GetEntities().clear();
+	EntityManager::Get().GetEntities().clear();
 }
 
 void Game::Start()
 {
-	CreateWalls();
-	EntityManager::Get().CreatePaddle(Side::Left, Input::Human);
-	EntityManager::Get().CreatePaddle(Side::Right, Input::Human);
-	Entity* ball = EntityManager::Get().CreateBall();
+	CreateWall(Side::Top);
+	CreateWall(Side::Bottom);
+	CreatePaddle(Side::Left, Player::Human);
+	CreatePaddle(Side::Right, Player::Ai);
+	Entity* ball = CreateBall();
 	int directionX = 0;
 	if (rand() > (RAND_MAX / 2))
 		directionX = -1;
@@ -69,13 +71,13 @@ void Game::Start()
 
 void Game::End()
 {
-	for (auto i : EntityManager::GetEntities())
+	for (auto i : EntityManager::Get().GetEntities())
 	{
 		if (i != nullptr)
 			delete i;
 	}
-	EntityManager::GetEntities().clear();
-	EntityManager::GetEntityMap().clear();
+	EntityManager::Get().GetEntities().clear();
+	EntityManager::Get().GetEntityMap().clear();
 }
 
 void Game::Loop()
@@ -107,7 +109,7 @@ void Game::ProcessInput()
 {
 	Input->Update(*this);
 
-	for (auto i : EntityManager::GetEntities())
+	for (auto i : EntityManager::Get().GetEntities())
 	{
 		if (i != nullptr)
 			i->ProcessInput();
@@ -152,9 +154,9 @@ void Game::SolvePhysics()
 
 bool Game::IsBallOutOfBounds()
 {
-	auto it = EntityManager::GetEntityMap().find("Ball");
+	auto it = EntityManager::Get().GetEntityMap().find("Ball");
 
-	if (it == EntityManager::GetEntityMap().end())
+	if (it == EntityManager::Get().GetEntityMap().end())
 		return false;
 
 	Entity* e = it->second;
@@ -176,14 +178,27 @@ void Game::IsGameOver()
 		End();
 	}
 }
-void Game::CreateWalls()
+
+Entity* Game::CreateWall(Side side)
 {
-	EntityManager::Get().CreateEntity(
+	glm::vec2 position = glm::vec2(0.0f);
+
+	switch (side)
+	{
+	case Side::Top:
+		position = glm::vec2(0.0f, 20.5f);
+		break;
+	case Side::Bottom:
+		position = glm::vec2(0.0f, -20.5f);
+		break;
+	}
+
+	Entity* e = CreateEntity(
 		new InputComponent(),
 		new PhysicsPolygonComponent(),
 		new OpenGL::QuadComponent(),
 		glm::vec2(30.0f, 0.5f),
-		glm::vec2(0.0f, 20.5f),
+		position,
 		0.0f,
 		glm::vec3(0.0f),
 		b2_staticBody,
@@ -191,24 +206,77 @@ void Game::CreateWalls()
 		0.0f,
 		1.0f
 	);
-	EntityManager::Get().CreateEntity(
-		new InputComponent(),
+	return e;
+}
+
+Entity* Game::CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution)
+{
+	Entity* x = new Entity(input, physics, graphics, position, size, rotation, color, bodytype, density, friction, restitution);
+	EntityManager::Get().GetEntities().emplace_back(x);
+	return x;
+}
+
+Entity* Game::CreatePaddle(Side side, Player player)
+{
+	glm::vec2 position = glm::vec2(0.0f);
+	InputComponent* inputComponent = nullptr;
+
+	switch (side)
+	{
+		case Side::Left:
+			position = glm::vec2(-25.0f, 0.0f);
+			break;
+		case Side::Right:
+			position = glm::vec2(25.0f, 0.0f);
+			break;
+	}
+	switch (player)
+	{
+		case Player::Human:
+			inputComponent = new PlayerInputComponent();
+			break;
+		case Player::Ai:
+			inputComponent = new ComputerInputComponent();
+			break;
+	}
+	Entity* x = CreateEntity(
+		inputComponent,
 		new PhysicsPolygonComponent(),
 		new OpenGL::QuadComponent(),
-		glm::vec2(30.0f, 0.5f),
-		glm::vec2(0.0f, -20.5f),
+		glm::vec2(0.5f, 3.0f),
+		position,
 		0.0f,
-		glm::vec3(0.0f),
-		b2_staticBody,
-		0.0f,
-		0.0f,
-		1.0f
+		glm::vec3(255.0f, 255.0f, 0.0f),
+		b2_kinematicBody,
+		1.0f,
+		1.0f,
+		0.8f
 	);
+	return x;
+}
+
+Entity* Game::CreateBall()
+{
+	Entity* x = CreateEntity(
+		new InputComponent(),
+		new PhysicsCircleComponent(),
+		new OpenGL::QuadComponent(),
+		glm::vec2(0.5f),
+		glm::vec2(0.0f, 4.0f),
+		30.0f,
+		glm::vec3(255.0f, 255.0f, 255.0f),
+		b2_dynamicBody,
+		1.0f,
+		1.0f,
+		0.8f
+	);
+	EntityManager::Get().GetEntityMap().emplace(std::string("Ball"), x);
+	return x;
 }
 
 void Game::UpdateAllEntities()
 {
-	for (auto i = EntityManager::GetEntities().begin(); i != EntityManager::GetEntities().end(); i++)
+	for (auto i = EntityManager::Get().GetEntities().begin(); i != EntityManager::Get().GetEntities().end(); i++)
 	{
 		Entity* e = (*i);
 
@@ -220,16 +288,18 @@ void Game::UpdateAllEntities()
 	}
 }
 
-void Game::CreateDebugGui()
+OpenGL::GuiContext* Game::CreateDebugGui()
 {
 	OpenGL::GuiContext* t = new OpenGL::DebugGuiContext();
-	GuiContexts.push_back(t);
+	OpenGL::GuiManager::Get().GetContexts().push_back(t);
+	return t;
 }
 
-void Game::CreateGameGui()
+OpenGL::GuiContext* Game::CreateGameGui()
 {
 	OpenGL::GuiContext* t = new OpenGL::GameGuiContext();
-	GuiContexts.push_back(t);
+	OpenGL::GuiManager::Get().GetContexts().push_back(t);
+	return t;
 }
 
 int main()

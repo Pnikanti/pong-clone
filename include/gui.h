@@ -4,21 +4,14 @@
 namespace OpenGL { class GraphicsComponent; }
 class PhysicsComponent;
 class Entity;
+class Game;
 
 namespace OpenGL {
-	class Gui {
-	public:
-		Gui();
-		~Gui();
-		void Begin();
-		void End();
-	private:
-		ImGuiContext* Context;
-	};
-
 	class GuiContext {
 	public:
 		virtual void Update();
+		virtual void Update(Entity& entity);
+		virtual void Update(Game& game);
 	};
 
 	class DebugGuiContext : public GuiContext {
@@ -33,7 +26,7 @@ namespace OpenGL {
 	class GameGuiContext : public GuiContext {
 	public:
 		GameGuiContext();
-		void Update() override;
+		void Update(Game& game) override;
 	public:
 		ImGuiWindowFlags wFlags;
 		ImGuiWindowFlags wBackgroundFlags;

@@ -3,6 +3,7 @@
 #include "log.h"
 #include "physics.h"
 #include "input.h"
+#include "graphics.h"
 
 /* Entity handles rotation in degrees. When radians are used
 (mainly in graphics and physics components) they are converted expliticly.
@@ -39,6 +40,8 @@ glm::vec2 Entity::GetPosition() { return Position; }
 float Entity::GetRotationDegrees() { return Rotation; }
 float Entity::GetRotationRadians() { return glm::radians(Rotation); }
 PhysicsComponent* Entity::GetPhysicsComponent() { return physics; }
+OpenGL::GraphicsComponent* Entity::GetGraphicsComponent() { return graphics; }
+
 
 void Entity::SetAttributes(glm::vec2 position, glm::vec2 size, float rotation)
 {

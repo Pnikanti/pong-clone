@@ -13,6 +13,7 @@ set(SOURCES
 	 ${PROJECT_SOURCE_DIR}/src/game.cpp
 	 ${PROJECT_SOURCE_DIR}/src/log.cpp
 	 ${PROJECT_SOURCE_DIR}/src/gui.cpp
+	 ${PROJECT_SOURCE_DIR}/src/guimanager.cpp
 )
 
 set(IMGUI_SOURCES
@@ -102,6 +103,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/spdlog/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/imgui/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/box2d/include
+	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/robin_hood/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/box2d/src
 	PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
