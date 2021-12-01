@@ -13,17 +13,22 @@
 #include "guimanager.h"
 #include "input.h"
 
+#define length(array) ((sizeof(array)) / (sizeof(array[0])))
+
 float Game::TimeStep = 1.0f / 60.0f;
 GameState Game::State = GameState::MainMenu;
+unsigned int Game::ScoreLeftPlayer = 0;
+unsigned int Game::ScoreRightPlayer = 0;
+int Game::StartSequence[3] = { 3, 2, 1 };
+int Game::SequenceIndex = 0;
 
 Game::Game(const char* appName, int width, int height) :
-	Context(nullptr)
+	Context(nullptr), BallOutOfBounds(false)
 {
 	Logger::Init(appName);
 	EntityManager::Get().Init(3);
 	OpenGL::GuiManager::Get().Init(2);
 
-	CreateDebugGui();
 	CreateGameGui();
 
 	Physics = new PhysicsWorld();
@@ -32,7 +37,6 @@ Game::Game(const char* appName, int width, int height) :
 
 	Context = new OpenGL::Context(width, height, appName);
 	Context->AddShader(std::string("BasicShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
-	Context->AddShader(std::string("BallShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/ballfragment.shader"));
 	Context->Start();
 	Loop();
 }
@@ -61,13 +65,7 @@ void Game::Start()
 	CreateWall(Side::Bottom);
 	CreatePaddle(Side::Left, Player::Human);
 	CreatePaddle(Side::Right, Player::Ai);
-	Entity* ball = CreateBall();
-	int directionX = 0;
-	if (rand() > (RAND_MAX / 2))
-		directionX = -1;
-	else
-		directionX = 1;
-	ball->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(4.0f * directionX, 0.0f), ball->GetPhysicsComponent()->Body->GetWorldCenter(), true);
+	CreateBall();
 }
 
 void Game::End()
@@ -79,6 +77,11 @@ void Game::End()
 	}
 	EntityManager::Get().GetEntities().clear();
 	EntityManager::Get().GetEntityMap().clear();
+}
+
+void Game::Exit()
+{
+	glfwSetWindowShouldClose(OpenGL::Context::Window, true);
 }
 
 void Game::Loop()
@@ -94,16 +97,26 @@ void Game::Loop()
 		lag += elapsed;
 
 		ProcessInput();
+		CheckGameStart();
 		while (lag >= TimeStep)
 		{
-			Physics->Update();
-			UpdateAllEntities();
-			GameOver = IsBallOutOfBounds();
+			if (State == GameState::Play)
+			{
+				Physics->Update();
+				UpdateAllEntities();
+				BallOutOfBounds = IsBallOutOfBounds();
+			}
 			lag -= TimeStep;
 		}
 		Context->RenderOneFrame();
-		IsGameOver();
+		CheckGameOver();
 	}
+}
+
+void Game::ResetScore()
+{
+	ScoreLeftPlayer = 0;
+	ScoreRightPlayer = 0;
 }
 
 void Game::ProcessInput()
@@ -153,6 +166,41 @@ void Game::SolvePhysics()
 	}
 }
 
+void Game::CheckGameStart()
+{
+	if (State == GameState::Start)
+	{
+		CurrentTime = (float)glfwGetTime();
+		if (CurrentTime > PreviousTime + 1.0f)
+		{
+			PreviousTime = CurrentTime;
+			SequenceIndex++;
+		}
+
+		LOGGER_INFO("SequenceIdx: {0}, StartSequence length: {1}", SequenceIndex, length(StartSequence));
+		LOGGER_INFO("True ?: {0}", SequenceIndex < int(length(StartSequence)));
+		if (SequenceIndex < int(length(StartSequence)))
+			return;
+
+		SequenceIndex = 0;
+
+		auto it = EntityManager::Get().GetEntityMap().find("Ball");
+		if (it == EntityManager::Get().GetEntityMap().end())
+			return;
+
+		int directionX = 0;
+		Entity* e = it->second;
+
+		if (rand() > (RAND_MAX / 2))
+			directionX = -1;
+		else
+			directionX = 1;
+
+		e->GetPhysicsComponent()->Body->ApplyLinearImpulse(b2Vec2(4.0f * directionX, 0.0f), e->GetPhysicsComponent()->Body->GetWorldCenter(), true);
+		State = GameState::Play;
+	}
+}
+
 bool Game::IsBallOutOfBounds()
 {
 	auto it = EntityManager::Get().GetEntityMap().find("Ball");
@@ -171,12 +219,24 @@ bool Game::IsBallOutOfBounds()
 	return false;
 }
 
-void Game::IsGameOver()
+void Game::CheckGameOver()
 {
-	if (GameOver)
+	if (BallOutOfBounds && State != GameState::GameOver)
 	{
+		auto it = EntityManager::Get().GetEntityMap().find("Ball");
+
+		if (it == EntityManager::Get().GetEntityMap().end())
+			return;
+
+		Entity* ball = it->second;
+
+		if (ball->GetPosition().x > 0)
+			ScoreLeftPlayer++;
+		else
+			ScoreRightPlayer++;
+
 		State = GameState::GameOver;
-		End();
+		BallOutOfBounds = false;
 	}
 }
 
@@ -289,18 +349,12 @@ void Game::UpdateAllEntities()
 	}
 }
 
-OpenGL::GuiContext* Game::CreateDebugGui()
+void Game::CreateGameGui()
 {
-	OpenGL::GuiContext* t = new OpenGL::DebugGuiContext();
-	OpenGL::GuiManager::Get().GetContexts().push_back(t);
-	return t;
-}
-
-OpenGL::GuiContext* Game::CreateGameGui()
-{
-	OpenGL::GuiContext* t = new OpenGL::GameGuiContext();
-	OpenGL::GuiManager::Get().GetContexts().push_back(t);
-	return t;
+	OpenGL::GuiManager::Get().GetContexts().push_back(new OpenGL::GameGuiContext());
+#ifdef DEBUG
+	OpenGL::GuiManager::Get().GetContexts().push_back(new OpenGL::DebugGuiContext());
+#endif
 }
 
 int main()

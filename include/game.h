@@ -13,7 +13,7 @@ class InputComponent;
 
 enum class GameState
 {
-	Play = 0, MainMenu, Pause, GameOver
+	Play = 0, MainMenu, Start, Pause, GameOver
 };
 
 enum class Side
@@ -34,16 +34,20 @@ public:
 
 	void Start();
 	void End();
+	void Exit();
 	void Loop();
+
+	void CheckGameStart();
+	void CheckGameOver();
+	void ResetScore();
+
 	void ProcessInput();
 	void SolvePhysics();
 	void UpdateAllEntities();
+	void CreateGameGui();
 
-	void IsGameOver();
 	bool IsBallOutOfBounds();
 
-	OpenGL::GuiContext* CreateDebugGui();
-	OpenGL::GuiContext* CreateGameGui();
 	Entity* CreateWall(Side side);
 	Entity* CreateEntity(InputComponent* input, PhysicsComponent* physics, OpenGL::GraphicsComponent* graphics, glm::vec2 size, glm::vec2 position, float rotation, glm::vec3 color, b2BodyType bodytype, float density, float friction, float restitution);
 	Entity* CreatePaddle(Side side, Player player);
@@ -52,10 +56,17 @@ public:
 public:
 	static float TimeStep;
 	static GameState State;
-	bool GameOver;
+	static unsigned int ScoreLeftPlayer;
+	static unsigned int ScoreRightPlayer;
+	static int StartSequence[3];
+	static int SequenceIndex;
+
+	bool BallOutOfBounds;
 private:
 	OpenGL::Context* Context;
 	PhysicsWorld* Physics;
 	ContactListener* PhysicsListener;
 	GameInputComponent* Input;
+	float CurrentTime = 0.0f;
+	float PreviousTime = 0.0f;
 };

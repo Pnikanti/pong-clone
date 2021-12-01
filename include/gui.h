@@ -7,6 +7,23 @@ class Entity;
 class Game;
 
 namespace OpenGL {
+	class ImGuiExtender {
+	public:
+		static void TextCenter(const char* text, ...)
+		{
+			va_list args = nullptr;
+			va_start(args, text);
+			float fontSize = ImGui::GetFontSize() * strlen(text) / 2;
+			ImGui::SameLine(
+				ImGui::GetWindowSize().x / 2 -
+				fontSize + (fontSize / 2)
+			);
+			ImGui::TextV(text, args);
+			ImGui::NewLine();
+			va_end(args);
+		}
+	};
+
 	class GuiContext {
 	public:
 		virtual void Update();
@@ -30,11 +47,9 @@ namespace OpenGL {
 		ImGuiWindowFlags wFlags;
 		ImGuiWindowFlags wBackgroundFlags;
 		bool visible;
-		float fCurrentColor[3] = { 255.0f, 255.0f, 0.0f };
-		float fSize = 0.5f;
-		float fDensity = 0.5f;
-		float fFriction = 0.5f;
-		float fRestitution = 0.5f;
-		float fRotation = 30.0f;
+	private:
+		ImFont* gameFontP;
+		ImFont* gameFontH1;
+		ImFont* gameFontH2;
 	};
 }
