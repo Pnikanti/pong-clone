@@ -37,6 +37,7 @@ Game::Game(const char* appName, int width, int height) :
 
 	Context = new OpenGL::Context(width, height, appName);
 	Context->AddShader(std::string("BasicShader"), std::string("res/shaders/vertex.shader"), std::string("res/shaders/fragment.shader"));
+	Context->AddShader(std::string("TexturedShader"), std::string("res/shaders/texturedvertex.shader"), std::string("res/shaders/texturedfragment.shader"));
 	Context->Start();
 	Loop();
 }
@@ -55,8 +56,9 @@ Game::~Game()
 		if (i != nullptr)
 			delete i;
 	}
+
 	EntityManager::Get().GetEntities().clear();
-	EntityManager::Get().GetEntities().clear();
+	EntityManager::Get().GetEntityMap().clear();
 }
 
 void Game::Start()
@@ -75,8 +77,14 @@ void Game::End()
 		if (i != nullptr)
 			delete i;
 	}
+	LOGGER_INFO("Entities size: {0}", EntityManager::Get().GetEntities().size());
+	LOGGER_INFO("EntityMap size: {0}", EntityManager::Get().GetEntityMap().size());
+	LOGGER_INFO("PhysicsListener size: {0}", PhysicsListener->Contacts.size());
 	EntityManager::Get().GetEntities().clear();
 	EntityManager::Get().GetEntityMap().clear();
+	LOGGER_INFO("Entities size: {0}", EntityManager::Get().GetEntities().size());
+	LOGGER_INFO("EntityMap size: {0}", EntityManager::Get().GetEntityMap().size());
+	LOGGER_INFO("PhysicsListener size: {0}", PhysicsListener->Contacts.size());
 }
 
 void Game::Exit()
@@ -136,6 +144,7 @@ void Game::SolvePhysics()
 	for (position = PhysicsListener->Contacts.begin(); position != PhysicsListener->Contacts.end(); ++position)
 	{
 		Contact x = *position;
+		glm::vec3 color = glm::vec3(0.0f);
 
 		if (x.fixtureA->GetBody()->GetType() == b2_staticBody)
 			continue;
@@ -157,12 +166,29 @@ void Game::SolvePhysics()
 			directionY = -1;
 
 		if (worldpoints.x > 0)
+		{
 			directionX = -1;
+			color = Colors::Purple;
+		}
 		else
+		{
 			directionX = 1;
+			color = Colors::Yellow;
+		}
 
 		float r = ((float)rand() / (float)RAND_MAX) / 2;
+
+		// Apply linear pulse to ball
 		bodyB->ApplyLinearImpulse(b2Vec2(0.3f * directionX, r * directionY), bodyB->GetWorldCenter(), true);
+
+		// Set ball color
+		auto it = EntityManager::Get().GetEntityMap().find("Ball");
+
+		if (it == EntityManager::Get().GetEntityMap().end())
+			return;
+
+		Entity* e = it->second;
+		e->Color = color;
 	}
 }
 
@@ -177,8 +203,6 @@ void Game::CheckGameStart()
 			SequenceIndex++;
 		}
 
-		LOGGER_INFO("SequenceIdx: {0}, StartSequence length: {1}", SequenceIndex, length(StartSequence));
-		LOGGER_INFO("True ?: {0}", SequenceIndex < int(length(StartSequence)));
 		if (SequenceIndex < int(length(StartSequence)))
 			return;
 
@@ -280,15 +304,17 @@ Entity* Game::CreateEntity(InputComponent* input, PhysicsComponent* physics, Ope
 Entity* Game::CreatePaddle(Side side, Player player)
 {
 	glm::vec2 position = glm::vec2(0.0f);
+	glm::vec3 color = glm::vec3(0.0f);
 	InputComponent* inputComponent = nullptr;
-
 	switch (side)
 	{
 		case Side::Left:
 			position = glm::vec2(-25.0f, 0.0f);
+			color = Colors::Yellow;
 			break;
 		case Side::Right:
 			position = glm::vec2(25.0f, 0.0f);
+			color = Colors::Purple;
 			break;
 	}
 	switch (player)
@@ -307,7 +333,7 @@ Entity* Game::CreatePaddle(Side side, Player player)
 		glm::vec2(0.5f, 3.0f),
 		position,
 		0.0f,
-		glm::vec3(255.0f, 255.0f, 0.0f),
+		color,
 		b2_kinematicBody,
 		1.0f,
 		1.0f,
@@ -318,10 +344,12 @@ Entity* Game::CreatePaddle(Side side, Player player)
 
 Entity* Game::CreateBall()
 {
+	InputComponent* inputComponent = new InputComponent();
+
 	Entity* x = CreateEntity(
-		new InputComponent(),
+		inputComponent,
 		new PhysicsCircleComponent(),
-		new OpenGL::QuadComponent(),
+		new OpenGL::TexturedQuadComponent("res/textures/circle-800.png"),
 		glm::vec2(0.5f),
 		glm::vec2(0.0f, 4.0f),
 		30.0f,

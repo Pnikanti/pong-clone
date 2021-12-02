@@ -26,7 +26,6 @@ void PlayerInputComponent::Update(Entity& entity)
 {
 	if (glfwGetKey(OpenGL::Context::Window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-
 		auto body = entity.GetPhysicsComponent()->Body;
 		glm::vec2 paddlePosition = entity.GetPosition();
 		bool upperBounds = paddlePosition.y < 17.5f;

@@ -65,6 +65,8 @@ namespace OpenGL {
 		}
 
 		glfwSwapInterval(1); // Enable vsync
+		glEnable(GL_BLEND); // Enable blending
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 		LOGGER_INFO("Context initialized!");

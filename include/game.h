@@ -11,6 +11,12 @@ class GameInputComponent;
 class ContactListener;
 class InputComponent;
 
+static struct Colors
+{
+	static constexpr glm::vec3 Yellow = glm::vec3(0.9f, 0.9f, 0.2f);
+	static constexpr glm::vec3 Purple = glm::vec3(0.9f, 0.2f, 0.9f);
+};
+
 enum class GameState
 {
 	Play = 0, MainMenu, Start, Pause, GameOver

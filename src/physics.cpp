@@ -82,8 +82,10 @@ void PhysicsComponent::CreateFromEntity(Entity& entity)
 	LOGGER_TRACE("CreateFromEntity called");
 	if (Body != nullptr)
 	{
+		Body->DestroyFixture(Fixture);
 		PhysicsWorld::World->DestroyBody(Body);
 		Body = nullptr;
+		Fixture = nullptr;
 	}
 
 	b2PolygonShape Shape;
@@ -124,8 +126,10 @@ void PhysicsCircleComponent::CreateFromEntity(Entity& entity)
 	LOGGER_TRACE("Circle CreateFromEntity called");
 	if (Body != nullptr)
 	{
+		Body->DestroyFixture(Fixture);
 		PhysicsWorld::World->DestroyBody(Body);
 		Body = nullptr;
+		Fixture = nullptr;
 	}
 
 	Shape.m_radius = (entity.Size.x + entity.Size.y) / 4;
@@ -148,8 +152,10 @@ void PhysicsPolygonComponent::CreateFromEntity(Entity& entity)
 	LOGGER_TRACE("Polygon CreateFromEntity called");
 	if (Body != nullptr)
 	{
+		Body->DestroyFixture(Fixture);
 		PhysicsWorld::World->DestroyBody(Body);
 		Body = nullptr;
+		Fixture = nullptr;
 	}
 
 	Shape.SetAsBox(entity.Size.x, entity.Size.y);

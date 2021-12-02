@@ -18,6 +18,18 @@ namespace OpenGL
 			1, 2, 3
 		};
 	};
+	struct TexturedQuad {
+		float vertices[20] = {
+			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+		};
+		unsigned int indices[6] = {
+			0, 1, 3,
+			1, 2, 3
+		};
+	};
 
 	class GraphicsComponent
 	{
@@ -41,16 +53,18 @@ namespace OpenGL
 		unsigned int vertexBuffer;
 		unsigned int elementBuffer;
 	};
-	class CircleComponent : public GraphicsComponent
+
+	class TexturedQuadComponent : public GraphicsComponent
 	{
 	public:
-		CircleComponent();
-		~CircleComponent();
+		TexturedQuadComponent(const char* textureFilePath);
+		~TexturedQuadComponent();
 		void Draw(Entity& entity) override;
 	private:
-		Quad quad;
+		TexturedQuad texturedQuad;
 		unsigned int vertexArray;
 		unsigned int vertexBuffer;
 		unsigned int elementBuffer;
+		unsigned int texture;
 	};
 }

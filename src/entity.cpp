@@ -31,8 +31,10 @@ Entity::~Entity()
 	LOGGER_TRACE("Entity destructor called");
 	delete graphics;
 	delete physics;
+	delete input;
 	graphics = nullptr;
 	physics = nullptr;
+	input = nullptr;
 }
 
 glm::vec2 Entity::GetSize() { return Size * 2.0f; }

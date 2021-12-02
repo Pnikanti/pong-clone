@@ -34,9 +34,9 @@ namespace OpenGL {
 		wBackgroundFlags |= ImGuiWindowFlags_NoMove;
 		ImGui::GetIO().Fonts->AddFontDefault();
 
-		gameFontP = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 13.0f);
-		gameFontH2 = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 16.0f);
-		gameFontH1 = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 20.0f);
+		gameFontP = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 15.0f);
+		gameFontH2 = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 20.0f);
+		gameFontH1 = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/bit5x3.ttf", 40.0f);
 
 		LOGGER_TRACE("WindowFlags: {0}", wFlags);
 		LOGGER_TRACE("WindowBackgroundFlags: {0}", wBackgroundFlags);
@@ -81,7 +81,16 @@ namespace OpenGL {
 				ImGui::NewLine();
 				ImGui::PushFont(gameFontP);
 				ImGuiExtender::TextCenter("Press \"Space\" to play");
-				ImGuiExtender::TextCenter("Movement: \"WASD\"");
+				ImGuiExtender::TextCenter("Movement: \"WASD\", Pause: \"P\"");
+				ImGui::PopFont();
+				ImGui::End();
+
+				ImGui::SetNextWindowPos(ImVec2(0, (int)Context::SCR_HEIGHT - 40));
+				ImGui::SetNextWindowSize(ImVec2((int)Context::SCR_WIDTH, 80));
+				ImGui::Begin("Version Notes", &visible, wFlags);
+				ImGui::PushFont(gameFontP);
+				// Hard-coded for now!
+				ImGuiExtender::TextCenter("V0.4: Now with minor 8 bytes per game memory leaks! :)");
 				ImGui::PopFont();
 				ImGui::End();
 				break;
