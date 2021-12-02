@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required (VERSION 3.8)
-project (pong-clone VERSION 0.1)
+project (pong-clone VERSION 0.4)
 
 set(SOURCES
 	 ${PROJECT_SOURCE_DIR}/src/context.cpp
@@ -14,6 +14,9 @@ set(SOURCES
 	 ${PROJECT_SOURCE_DIR}/src/log.cpp
 	 ${PROJECT_SOURCE_DIR}/src/gui.cpp
 	 ${PROJECT_SOURCE_DIR}/src/guimanager.cpp
+)
+set(STB_SOURCES
+	${PROJECT_SOURCE_DIR}/dependencies/stb_image/src/stb_image.cpp
 )
 
 set(IMGUI_SOURCES
@@ -84,7 +87,7 @@ set(BOX2D_SOURCES
 find_package(OpenGL REQUIRED)
 
 file(COPY res DESTINATION ${CMAKE_BINARY_DIR})
-add_executable (${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${BOX2D_SOURCES})
+add_executable (${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${BOX2D_SOURCES} ${STB_SOURCES})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 add_definitions(-DGLEW_STATIC)
 
@@ -104,6 +107,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/imgui/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/box2d/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/robin_hood/include
+	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/stb_image/include
 	PUBLIC ${PROJECT_SOURCE_DIR}/dependencies/box2d/src
 	PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
